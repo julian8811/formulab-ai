@@ -1,8 +1,8 @@
 import postgres from "postgres";
 
 const urls = [
-  "postgresql://postgres.qndtqqrmupalxwhjbxuf:Yh4ATQGetSRDdInJuKXv9MfF@aws-0-us-east-1.pooler.supabase.com:6543/postgres",
-  "postgresql://postgres.qndtqqrmupalxwhjbxuf:Yh4ATQGetSRDdInJuKXv9MfF@aws-0-us-east-1.pooler.supabase.com:5432/postgres",
+  "postgresql://postgres.qndtqqrmupalxwhjbxuf:Yh4ATQGetSRDdInJuKXv9MfF@aws-1-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require",
+  "postgresql://postgres.qndtqqrmupalxwhjbxuf:Yh4ATQGetSRDdInJuKXv9MfF@aws-1-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require",
 ];
 
 for (const url of urls) {
