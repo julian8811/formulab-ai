@@ -98,7 +98,7 @@ export default function AIPage() {
 
         <p className="text-xs text-muted-foreground">
           La IA trabaja con bases de datos verificables. No inventa seguridad. Configura
-          AI_GATEWAY_API_KEY para respuestas enriquecidas con tools.
+          OPENAI_API_KEY o AI_GATEWAY_API_KEY para respuestas enriquecidas con tools.
         </p>
       </div>
     </div>

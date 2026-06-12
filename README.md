@@ -83,15 +83,16 @@ Si `DATABASE_URL` no está configurada, la app usa datos sembrados en memoria. T
 
 ## Variables de entorno
 
-| Variable                        | Descripción                         | Requerida   |
-| ------------------------------- | ----------------------------------- | ----------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | URL del proyecto Supabase           | Producción  |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave anon/public                   | Producción  |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Clave service role (solo servidor)  | Producción  |
-| `DATABASE_URL`                  | Postgres (pooler `:6543` en Vercel) | Producción  |
-| `NEXT_PUBLIC_APP_URL`           | URL pública de la app               | Producción  |
-| `AI_GATEWAY_API_KEY`            | Vercel AI Gateway                   | Opcional    |
-| `SUPABASE_ACCESS_TOKEN`         | PAT para scripts de migración       | Solo dev/CI |
+| Variable                        | Descripción                           | Requerida   |
+| ------------------------------- | ------------------------------------- | ----------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | URL del proyecto Supabase             | Producción  |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave anon/public                     | Producción  |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Clave service role (solo servidor)    | Producción  |
+| `DATABASE_URL`                  | Postgres (pooler `:6543` en Vercel)   | Producción  |
+| `NEXT_PUBLIC_APP_URL`           | URL pública de la app                 | Producción  |
+| `OPENAI_API_KEY`                | OpenAI directo (agentes + embeddings) | Opcional    |
+| `AI_GATEWAY_API_KEY`            | Vercel AI Gateway (alternativa)       | Opcional    |
+| `SUPABASE_ACCESS_TOKEN`         | PAT para scripts de migración         | Solo dev/CI |
 
 Ver [`.env.example`](.env.example) para la plantilla completa.
 

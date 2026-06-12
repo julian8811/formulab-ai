@@ -38,11 +38,16 @@ export async function generateEmbedding(text: string): Promise<number[] | null> 
     return null;
   }
 
+  const apiKey = process.env.AI_GATEWAY_API_KEY ?? process.env.OPENAI_API_KEY;
+  const baseUrl = process.env.AI_GATEWAY_API_KEY
+    ? "https://ai-gateway.vercel.sh/v1"
+    : "https://api.openai.com/v1";
+
   try {
-    const response = await fetch("https://ai-gateway.vercel.sh/v1/embeddings", {
+    const response = await fetch(`${baseUrl}/embeddings`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.AI_GATEWAY_API_KEY ?? process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

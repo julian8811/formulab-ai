@@ -32,9 +32,10 @@ Configura en **Project → Settings → Environment Variables** (Production, Pre
 - `DATABASE_URL` — usar pooler `:6543` para serverless
 - `NEXT_PUBLIC_APP_URL` — URL de producción de Vercel
 
-Opcional:
+Opcional (IA):
 
-- `AI_GATEWAY_API_KEY` — para agentes IA en producción
+- `OPENAI_API_KEY` — OpenAI directo (recomendado si ya tienes cuenta OpenAI)
+- `AI_GATEWAY_API_KEY` — Vercel AI Gateway (alternativa con routing unificado)
 
 ### CLI
 

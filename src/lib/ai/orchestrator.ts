@@ -77,7 +77,7 @@ Propongo una fórmula base consultando la BD de ingredientes:
 **Alertas:** Revisar pH (objetivo 5.5), fragancia ≤0.2%, challenge test obligatorio.
 **Pruebas:** Estabilidad, microbiología, compatibilidad con bomba foamer.
 
-> Configura AI_GATEWAY_API_KEY para respuestas enriquecidas con tools.`,
+> Configura OPENAI_API_KEY o AI_GATEWAY_API_KEY para respuestas enriquecidas con tools.`,
 
     regulatory: `**Agente Regulatorio (modo demo)**
 
