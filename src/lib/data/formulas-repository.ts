@@ -126,15 +126,29 @@ export async function canAccessFormula(
   return ownerId === userId;
 }
 
-export async function dbGetFormulas(userId?: string): Promise<StoredFormula[]> {
+export async function dbGetFormulas(
+  userId?: string,
+  projectId?: string,
+): Promise<StoredFormula[]> {
   const db = getDb();
-  const allFormulas = userId
-    ? await db
-        .select()
-        .from(formulas)
-        .where(eq(formulas.userId, userId))
-        .orderBy(desc(formulas.updatedAt))
-    : await db.select().from(formulas).orderBy(desc(formulas.updatedAt));
+  const filters = [];
+  if (userId) filters.push(eq(formulas.userId, userId));
+  if (projectId) filters.push(eq(formulas.projectId, projectId));
+
+  const allFormulas =
+    filters.length === 0
+      ? await db.select().from(formulas).orderBy(desc(formulas.updatedAt))
+      : filters.length === 1
+        ? await db
+            .select()
+            .from(formulas)
+            .where(filters[0])
+            .orderBy(desc(formulas.updatedAt))
+        : await db
+            .select()
+            .from(formulas)
+            .where(and(filters[0], filters[1]))
+            .orderBy(desc(formulas.updatedAt));
 
   const results: StoredFormula[] = [];
   for (const f of allFormulas) {

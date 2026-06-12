@@ -4,6 +4,7 @@ import { suggestReformulationWithAi } from "@/lib/ai/reformulation-agent";
 import { suggestReformulation } from "@/lib/reformulation/suggester";
 import { getAllIngredients } from "@/lib/data/repository";
 import { requireApiAuth } from "@/lib/auth/api-guard";
+import { checkRateLimit, rateLimitKey } from "@/lib/rate-limit";
 import type { FormulaLineInput } from "@/lib/validation/engine";
 
 async function buildFormulaLines(
@@ -33,6 +34,14 @@ async function buildFormulaLines(
 export async function GET(request: NextRequest) {
   const auth = await requireApiAuth();
   if (!auth.ok) return auth.response;
+
+  const rl = checkRateLimit(rateLimitKey(request, "api-reformulation"));
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Demasiadas solicitudes" },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+    );
+  }
 
   const formulaId = request.nextUrl.searchParams.get("formulaId");
   const goal = request.nextUrl.searchParams.get("goal") as

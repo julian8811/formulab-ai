@@ -2,15 +2,17 @@ import { AppHeader } from "@/components/layout/sidebar";
 import { ValidationPageClient } from "@/components/validation/validation-page-client";
 import { getFormulas } from "@/lib/actions";
 import { requireAuth } from "@/lib/auth/guard";
+import { resolveProjectFilter } from "@/lib/auth/organizations";
 
 interface PageProps {
-  searchParams: Promise<{ formula?: string }>;
+  searchParams: Promise<{ formula?: string; project?: string }>;
 }
 
 export default async function ValidationPage({ searchParams }: PageProps) {
   const user = await requireAuth();
   const params = await searchParams;
-  const formulas = await getFormulas(user.id);
+  const projectId = await resolveProjectFilter(user.id, params.project);
+  const formulas = await getFormulas(user.id, projectId);
 
   return (
     <div>

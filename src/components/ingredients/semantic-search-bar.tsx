@@ -12,11 +12,13 @@ type SearchMode = "text" | "semantic";
 
 interface SemanticSearchBarProps {
   onQueryChange?: (query: string) => void;
+  onSemanticResults?: (ids: string[] | null) => void;
   placeholder?: string;
 }
 
 export function SemanticSearchBar({
   onQueryChange,
+  onSemanticResults,
   placeholder = "Buscar INCI, nombre o función...",
 }: SemanticSearchBarProps) {
   const [query, setQuery] = useState("");
@@ -26,27 +28,37 @@ export function SemanticSearchBar({
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const fetchResults = useCallback(async (q: string, searchMode: SearchMode) => {
-    if (!q.trim()) {
-      setResults([]);
-      setOpen(false);
-      return;
-    }
+  const fetchResults = useCallback(
+    async (q: string, searchMode: SearchMode) => {
+      if (!q.trim()) {
+        setResults([]);
+        setOpen(false);
+        onSemanticResults?.(null);
+        return;
+      }
 
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `/api/ingredients/search?q=${encodeURIComponent(q)}&mode=${searchMode}`,
-      );
-      const data = (await res.json()) as SeedIngredient[];
-      setResults(Array.isArray(data) ? data : []);
-      setOpen(true);
-    } catch {
-      setResults([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `/api/ingredients/search?q=${encodeURIComponent(q)}&mode=${searchMode}`,
+        );
+        const data = (await res.json()) as SeedIngredient[];
+        const list = Array.isArray(data) ? data : [];
+        setResults(list);
+        setOpen(true);
+        if (searchMode === "semantic") {
+          onSemanticResults?.(list.map((i) => i.id));
+        } else {
+          onSemanticResults?.(null);
+        }
+      } catch {
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [onSemanticResults],
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -56,11 +68,12 @@ export function SemanticSearchBar({
       } else {
         setResults([]);
         setOpen(false);
+        onSemanticResults?.(null);
       }
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [query, mode, fetchResults, onQueryChange]);
+  }, [query, mode, fetchResults, onQueryChange, onSemanticResults]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

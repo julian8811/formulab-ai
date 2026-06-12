@@ -89,6 +89,7 @@ const formulaSchema = z.object({
   market: z
     .enum(["colombia", "can", "usa", "eu", "mexico", "brazil"])
     .default("colombia"),
+  projectId: z.string().uuid().optional(),
   lines: z
     .array(
       z.object({
@@ -120,10 +121,13 @@ async function buildFormulaLines(
     .filter(Boolean) as FormulaLineInput[];
 }
 
-export async function getFormulas(userId?: string): Promise<StoredFormula[]> {
+export async function getFormulas(
+  userId?: string,
+  projectId?: string,
+): Promise<StoredFormula[]> {
   if (isFormulasDbAvailable()) {
     try {
-      const rows = await dbGetFormulas(userId);
+      const rows = await dbGetFormulas(userId, projectId);
       if (rows.length > 0 || !shouldUseInMemoryStore()) return rows;
     } catch {
       if (!shouldUseInMemoryStore()) return [];
@@ -157,7 +161,8 @@ export async function createFormula(
   const user = await getCurrentUser();
 
   if (isFormulasDbAvailable()) {
-    const projectId = user?.id ? await getUserDefaultProjectId(user.id) : undefined;
+    const projectId =
+      data.projectId ?? (user?.id ? await getUserDefaultProjectId(user.id) : undefined);
     return await dbCreateFormula({
       ...data,
       positioning: data.positioning as Positioning[],

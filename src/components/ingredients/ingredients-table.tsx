@@ -28,6 +28,7 @@ interface IngredientsTableProps {
 
 export function IngredientsTable({ ingredients }: IngredientsTableProps) {
   const [query, setQuery] = useState("");
+  const [semanticIds, setSemanticIds] = useState<string[] | null>(null);
   const [origin, setOrigin] = useState<Origin | "all">("all");
   const [dogFilter, setDogFilter] = useState<DogCompatibility | "all">("all");
   const [functionFilter, setFunctionFilter] = useState("all");
@@ -40,6 +41,7 @@ export function IngredientsTable({ ingredients }: IngredientsTableProps) {
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
     return ingredients.filter((ing) => {
+      if (semanticIds && !semanticIds.includes(ing.id)) return false;
       if (origin !== "all" && ing.origin !== origin) return false;
       if (dogFilter !== "all" && ing.dogCompatibility !== dogFilter) return false;
       if (functionFilter !== "all" && ing.function !== functionFilter) return false;
@@ -51,12 +53,12 @@ export function IngredientsTable({ ingredients }: IngredientsTableProps) {
         ing.function.toLowerCase().includes(q)
       );
     });
-  }, [ingredients, query, origin, dogFilter, functionFilter]);
+  }, [ingredients, query, origin, dogFilter, functionFilter, semanticIds]);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <SemanticSearchBar onQueryChange={setQuery} />
+        <SemanticSearchBar onQueryChange={setQuery} onSemanticResults={setSemanticIds} />
         <Select value={functionFilter} onValueChange={(v) => v && setFunctionFilter(v)}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Función" />

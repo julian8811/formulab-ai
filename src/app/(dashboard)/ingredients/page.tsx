@@ -2,12 +2,17 @@ import { AppHeader } from "@/components/layout/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/link-button";
 import { getAllIngredients } from "@/lib/actions";
+import { requireAuth } from "@/lib/auth/guard";
+import { getUserOrgContext, canManageCatalog } from "@/lib/auth/permissions";
 import { IngredientsTable } from "@/components/ingredients/ingredients-table";
 import { EmbeddingStatusBadge } from "@/components/ingredients/embedding-status";
 import { Plus } from "lucide-react";
 
 export default async function IngredientsPage() {
+  const user = await requireAuth();
   const ingredients = await getAllIngredients();
+  const ctx = await getUserOrgContext(user.id);
+  const canEdit = ctx ? canManageCatalog(ctx.role) : true;
 
   return (
     <div>
@@ -20,10 +25,12 @@ export default async function IngredientsPage() {
             </p>
             <EmbeddingStatusBadge />
           </div>
-          <LinkButton href="/ingredients/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo ingrediente
-          </LinkButton>
+          {canEdit && (
+            <LinkButton href="/ingredients/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Nuevo ingrediente
+            </LinkButton>
+          )}
         </div>
 
         <Card>

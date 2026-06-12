@@ -4,7 +4,7 @@ import {
   upsertIngredient,
   deleteIngredient,
 } from "@/lib/data/repository";
-import { requireApiAuth } from "@/lib/auth/api-guard";
+import { requireCatalogAdminAuth } from "@/lib/auth/api-guard";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -20,7 +20,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 }
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
-  const auth = await requireApiAuth();
+  const auth = await requireCatalogAdminAuth();
   if (!auth.ok) return auth.response;
 
   const { id } = await params;
@@ -42,7 +42,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 }
 
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
-  const auth = await requireApiAuth();
+  const auth = await requireCatalogAdminAuth();
   if (!auth.ok) return auth.response;
 
   const { id } = await params;

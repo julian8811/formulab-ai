@@ -189,3 +189,29 @@ export function getFreeSetupHint(): string {
 
 3. **Groq**: key gratis en https://console.groq.com/keys → \`GROQ_API_KEY\``;
 }
+
+/** Lightweight probe for /api/ai/status — tries each provider separately. */
+export async function probeAiProviders(): Promise<{
+  ok: boolean;
+  workingMethod: AiAuthMethod | null;
+  errors: Partial<Record<AiAuthMethod, string>>;
+}> {
+  const methods = getAvailableAiMethods();
+  const errors: Partial<Record<AiAuthMethod, string>> = {};
+
+  for (const method of methods) {
+    try {
+      await generateText({
+        model: getChatModelFor(method),
+        prompt: "Responde solo: OK",
+        maxOutputTokens: 8,
+        abortSignal: AbortSignal.timeout(12_000),
+      });
+      return { ok: true, workingMethod: method, errors };
+    } catch (e) {
+      errors[method] = e instanceof Error ? e.message.slice(0, 120) : String(e);
+    }
+  }
+
+  return { ok: false, workingMethod: null, errors };
+}

@@ -19,7 +19,8 @@ Copiloto técnico de formulación cosmética para **perros y humanos**. Lleva un
 - **Base de ingredientes** — 310+ materias primas con INCI, rangos de uso, compatibilidad canina y costos
 - **Búsqueda semántica** — encuentra ingredientes por significado en `/ingredients`
 - **7 plantillas** — fórmulas base canino + humano listas para usar
-- **Organizaciones** — espacio de trabajo por usuario con rol owner al registrarse
+- **Organizaciones** — espacio de trabajo por usuario; roles owner/admin/member; proyectos y miembros en `/settings`
+- **Mercados MX/BR** — perfiles regulatorios México y Brasil en constructor y validación
 - **Validador técnico** — semáforos para pH, porcentajes, incompatibilidades iónicas y microbiología
 - **Validador de claims** — detecta frases riesgosas (medicamento veterinario, pesticida, etc.)
 - **Módulo regulatorio** — perfiles Colombia/CAN, FDA, UE
@@ -121,16 +122,20 @@ Políticas RLS: [`supabase/migrations/001_rls_policies.sql`](supabase/migrations
 
 ## Scripts
 
-| Comando              | Descripción                   |
-| -------------------- | ----------------------------- |
-| `npm run dev`        | Servidor de desarrollo        |
-| `npm run build`      | Build de producción           |
-| `npm run start`      | Servidor de producción        |
-| `npm run test`       | Tests unitarios (Vitest)      |
-| `npm run lint`       | ESLint                        |
-| `npm run db:seed`    | Sembrar datos en Supabase     |
-| `npm run db:migrate` | Aplicar migración SQL vía API |
-| `npm run format`     | Prettier                      |
+| Comando                 | Descripción                       |
+| ----------------------- | --------------------------------- |
+| `npm run dev`           | Servidor de desarrollo            |
+| `npm run build`         | Build de producción               |
+| `npm run start`         | Servidor de producción            |
+| `npm run test`          | Tests unitarios (Vitest)          |
+| `npm run lint`          | ESLint                            |
+| `npm run db:seed`       | Sembrar datos en Supabase         |
+| `npm run db:embed:api`  | Generar embeddings vía API (prod) |
+| `npm run db:migrate`    | Aplicar migración SQL vía API     |
+| `npm run ai:check:prod` | Verificar proveedores IA en prod  |
+| `npm run format`        | Prettier                          |
+
+Documentación de seguridad: [`docs/SECURITY.md`](docs/SECURITY.md)
 
 ## Spec 001 — Fases completadas
 
@@ -140,6 +145,14 @@ Políticas RLS: [`supabase/migrations/001_rls_policies.sql`](supabase/migrations
 | 2 — Datos          | Versiones, edición, scores, selector de fórmula           |
 | 3 — IA/Regulatorio | Búsqueda semántica, reformulación IA, import CosIng       |
 | 4 — Producto       | Organizaciones, tests, README, catálogo 310+ ingredientes |
+
+## Spec 002 — Hardening producción
+
+Auth en APIs de mutación, ownership de fórmulas, proyecto por defecto, cache de scores, signed URLs en Storage, settings básico, CI y tests ampliados.
+
+## Spec 003 — Enterprise completion
+
+Roles org y catálogo admin-only, gestión de miembros/proyectos, filtro `?project=`, migración legacy, rate limit IA, probe de proveedores, landing pública, semántica en tabla, `docs/SECURITY.md`.
 
 ## Módulos de la plataforma
 

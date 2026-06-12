@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSessionUser, isDemoMode, type SessionUser } from "@/lib/auth/guard";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { requireCatalogAdmin } from "@/lib/auth/permissions";
 
 export type ApiAuthSuccess = { ok: true; user: SessionUser };
 export type ApiAuthFailure = { ok: false; response: NextResponse };
@@ -21,6 +22,28 @@ export async function requireApiAuth(): Promise<ApiAuthResult> {
   }
 
   return { ok: true, user };
+}
+
+export async function requireCatalogAdminAuth(): Promise<ApiAuthResult> {
+  const auth = await requireApiAuth();
+  if (!auth.ok) return auth;
+
+  if (isDemoMode() && !isSupabaseConfigured()) {
+    return auth;
+  }
+
+  const ctx = await requireCatalogAdmin(auth.user.id);
+  if (!ctx) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: "Solo owner/admin puede modificar el catálogo" },
+        { status: 403 },
+      ),
+    };
+  }
+
+  return auth;
 }
 
 export async function withApiAuth<T>(

@@ -48,6 +48,7 @@ const formulaFormSchema = z.object({
   targetPh: z.coerce.number().min(3).max(10).optional(),
   market: z.enum(["colombia", "can", "usa", "eu", "mexico", "brazil"]),
   claims: z.string().optional(),
+  projectId: z.string().uuid().optional(),
   lines: z
     .array(
       z.object({
@@ -64,12 +65,14 @@ type FormulaFormValues = z.infer<typeof formulaFormSchema>;
 
 interface FormulaBuilderProps {
   ingredients: SeedIngredient[];
+  projects?: { id: string; name: string }[];
   defaultValues?: Partial<FormulaFormValues>;
   formulaId?: string;
 }
 
 export function FormulaBuilder({
   ingredients,
+  projects = [],
   defaultValues,
   formulaId,
 }: FormulaBuilderProps) {
@@ -150,6 +153,26 @@ export function FormulaBuilder({
             <Label htmlFor="description">Descripción</Label>
             <Textarea id="description" {...form.register("description")} rows={2} />
           </div>
+          {projects.length > 0 && (
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Proyecto</Label>
+              <Select
+                value={form.watch("projectId") ?? ""}
+                onValueChange={(v) => form.setValue("projectId", v || undefined)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Proyecto por defecto" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-2">
             <Label>Tipo de producto</Label>
             <Select

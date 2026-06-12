@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { importCosIngBatch, importIFRABatch } from "@/lib/regulatory/import";
 import { cosingSampleEntries, ifraSampleEntries } from "@/data/regulatory/cosing-sample";
 import { cosingExtendedEntries } from "@/data/regulatory/cosing-extended";
-import { requireApiAuth } from "@/lib/auth/api-guard";
+import { requireCatalogAdminAuth } from "@/lib/auth/api-guard";
 
 export async function POST(request: NextRequest) {
-  const auth = await requireApiAuth();
+  const auth = await requireCatalogAdminAuth();
   if (!auth.ok) return auth.response;
 
   try {

@@ -11,11 +11,18 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { getFormulas, getAllIngredients, getProductTemplates } from "@/lib/actions";
 import { requireAuth } from "@/lib/auth/guard";
+import { resolveProjectFilter } from "@/lib/auth/organizations";
 import { FlaskConical, Database, Shield, FileText, Plus, Sparkles } from "lucide-react";
 
-export default async function DashboardPage() {
+interface PageProps {
+  searchParams: Promise<{ project?: string }>;
+}
+
+export default async function DashboardPage({ searchParams }: PageProps) {
   const user = await requireAuth();
-  const formulas = await getFormulas(user.id);
+  const params = await searchParams;
+  const projectId = await resolveProjectFilter(user.id, params.project);
+  const formulas = await getFormulas(user.id, projectId);
   const ingredients = await getAllIngredients();
   const templates = await getProductTemplates();
 

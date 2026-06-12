@@ -3,17 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormulaSelector } from "@/components/formulas/formula-selector";
 import { getFormulas, getFormulaAnalysis } from "@/lib/actions";
 import { requireAuth } from "@/lib/auth/guard";
+import { resolveProjectFilter } from "@/lib/auth/organizations";
 import { seedStabilityProtocols, seedMicroProtocols } from "@/data/seed";
 import { ValidationAlertsList } from "@/components/validation/alerts-list";
 
 interface PageProps {
-  searchParams: Promise<{ formula?: string }>;
+  searchParams: Promise<{ formula?: string; project?: string }>;
 }
 
 export default async function StabilityPage({ searchParams }: PageProps) {
   const user = await requireAuth();
   const params = await searchParams;
-  const formulas = await getFormulas(user.id);
+  const projectId = await resolveProjectFilter(user.id, params.project);
+  const formulas = await getFormulas(user.id, projectId);
   const formulaOptions = formulas.map((f) => ({ id: f.id, name: f.name }));
   const selectedId =
     params.formula && formulas.some((f) => f.id === params.formula)

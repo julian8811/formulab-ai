@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import {
-  generateAiText,
   getAiAuthMethod,
   getAvailableAiMethods,
   getFreeSetupHint,
   isAiConfigured,
+  probeAiProviders,
 } from "@/lib/ai/config";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 export async function GET() {
   const availableMethods = getAvailableAiMethods();
@@ -24,29 +25,27 @@ export async function GET() {
     });
   }
 
-  try {
-    const { authMethod: usedMethod } = await generateAiText({
-      prompt: "Responde solo: OK",
-      maxOutputTokens: 16,
-    });
+  const probe = await probeAiProviders();
 
+  if (probe.ok && probe.workingMethod) {
     return NextResponse.json({
       ok: true,
       mode: "live",
-      authMethod: usedMethod,
+      authMethod: probe.workingMethod,
       availableMethods,
       message: "IA operativa (plan gratuito).",
     });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Error desconocido";
-
-    return NextResponse.json({
-      ok: false,
-      mode: "demo",
-      authMethod,
-      availableMethods,
-      message,
-      setup: getFreeSetupHint(),
-    });
   }
+
+  const firstError = Object.values(probe.errors)[0] ?? "Todos los proveedores fallaron";
+
+  return NextResponse.json({
+    ok: false,
+    mode: "demo",
+    authMethod,
+    availableMethods,
+    message: firstError,
+    providerErrors: probe.errors,
+    setup: getFreeSetupHint(),
+  });
 }

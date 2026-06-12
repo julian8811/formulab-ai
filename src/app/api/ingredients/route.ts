@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllIngredients, upsertIngredient } from "@/lib/data/repository";
-import { requireApiAuth } from "@/lib/auth/api-guard";
+import { requireApiAuth, requireCatalogAdminAuth } from "@/lib/auth/api-guard";
 import { z } from "zod";
 
 const ingredientSchema = z.object({
@@ -36,7 +36,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireApiAuth();
+  const auth = await requireCatalogAdminAuth();
   if (!auth.ok) return auth.response;
 
   try {
