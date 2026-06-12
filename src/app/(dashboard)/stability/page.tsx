@@ -2,6 +2,7 @@ import { AppHeader } from "@/components/layout/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormulaSelector } from "@/components/formulas/formula-selector";
 import { getFormulas, getFormulaAnalysis } from "@/lib/actions";
+import { requireAuth } from "@/lib/auth/guard";
 import { seedStabilityProtocols, seedMicroProtocols } from "@/data/seed";
 import { ValidationAlertsList } from "@/components/validation/alerts-list";
 
@@ -10,8 +11,9 @@ interface PageProps {
 }
 
 export default async function StabilityPage({ searchParams }: PageProps) {
+  const user = await requireAuth();
   const params = await searchParams;
-  const formulas = await getFormulas();
+  const formulas = await getFormulas(user.id);
   const formulaOptions = formulas.map((f) => ({ id: f.id, name: f.name }));
   const selectedId =
     params.formula && formulas.some((f) => f.id === params.formula)
@@ -23,7 +25,7 @@ export default async function StabilityPage({ searchParams }: PageProps) {
 
   if (selectedId) {
     try {
-      const analysis = await getFormulaAnalysis(selectedId);
+      const analysis = await getFormulaAnalysis(selectedId, { userId: user.id });
       stabilityData = analysis.stability;
       microData = analysis.microbiology;
     } catch {

@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFormulaById, updateFormula, deleteFormula } from "@/lib/actions";
+import { requireApiAuth } from "@/lib/auth/api-guard";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
 export async function GET(_request: NextRequest, { params }: RouteParams) {
+  const auth = await requireApiAuth();
+  if (!auth.ok) return auth.response;
+
   const { id } = await params;
-  const formula = await getFormulaById(id);
+  const formula = await getFormulaById(id, auth.user.id);
   if (!formula) {
     return NextResponse.json({ error: "No encontrada" }, { status: 404 });
   }
@@ -15,10 +19,13 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 }
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  const auth = await requireApiAuth();
+  if (!auth.ok) return auth.response;
+
   const { id } = await params;
   try {
     const body = await request.json();
-    const updated = await updateFormula(id, body);
+    const updated = await updateFormula(id, body, auth.user.id);
     if (!updated) {
       return NextResponse.json({ error: "No encontrada" }, { status: 404 });
     }
@@ -32,8 +39,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 }
 
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+  const auth = await requireApiAuth();
+  if (!auth.ok) return auth.response;
+
   const { id } = await params;
-  const ok = await deleteFormula(id);
+  const ok = await deleteFormula(id, auth.user.id);
   if (!ok) {
     return NextResponse.json({ error: "No encontrada" }, { status: 404 });
   }

@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Upload, FileText, Trash2 } from "lucide-react";
+import { Upload, FileText, Trash2, Download } from "lucide-react";
 import type { IngredientDocument } from "@/lib/data/ingredient-documents";
 import type { DocumentType } from "@/types";
 
@@ -62,6 +62,23 @@ export function DocumentUpload({
     } finally {
       setUploading(false);
       e.target.value = "";
+    }
+  }
+
+  async function handleDownload(docId: string, fileName: string) {
+    try {
+      const res = await fetch(
+        `/api/ingredients/${ingredientId}/documents/${docId}/download`,
+      );
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error ?? "Error al descargar");
+      }
+      const { url } = await res.json();
+      window.open(url, "_blank", "noopener,noreferrer");
+      toast.success(`Descargando ${fileName}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo descargar");
     }
   }
 
@@ -136,9 +153,21 @@ export function DocumentUpload({
                   ({doc.documentType})
                 </span>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => handleDelete(doc.id)}>
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
+              <div className="flex items-center gap-1">
+                {!doc.storagePath.startsWith("local://") && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    onClick={() => handleDownload(doc.id, doc.fileName)}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button variant="ghost" size="icon" onClick={() => handleDelete(doc.id)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
             </li>
           ))}
         </ul>

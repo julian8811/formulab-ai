@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ReformulationSuggestion } from "@/types";
-import { Leaf, DollarSign } from "lucide-react";
+import { Leaf, DollarSign, ShieldAlert } from "lucide-react";
 
 function SuggestionList({ items }: { items: ReformulationSuggestion[] }) {
   if (items.length === 0) {
@@ -32,9 +32,18 @@ function SuggestionList({ items }: { items: ReformulationSuggestion[] }) {
   );
 }
 
+type Goal = "natural" | "cost" | "irritation";
+
+async function fetchSuggestions(formulaId: string, goal: Goal) {
+  const res = await fetch(`/api/reformulation?formulaId=${formulaId}&goal=${goal}`);
+  const data = await res.json();
+  return Array.isArray(data) ? data : (data.suggestions ?? []);
+}
+
 export function ReformulationPanel({ formulaId }: { formulaId: string }) {
   const [natural, setNatural] = useState<ReformulationSuggestion[]>([]);
   const [cost, setCost] = useState<ReformulationSuggestion[]>([]);
+  const [irritation, setIrritation] = useState<ReformulationSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,19 +52,15 @@ export function ReformulationPanel({ formulaId }: { formulaId: string }) {
     async function loadSuggestions() {
       setLoading(true);
       try {
-        const [naturalRes, costRes] = await Promise.all([
-          fetch(`/api/reformulation?formulaId=${formulaId}&goal=natural`),
-          fetch(`/api/reformulation?formulaId=${formulaId}&goal=cost`),
-        ]);
-        const [naturalData, costData] = await Promise.all([
-          naturalRes.json(),
-          costRes.json(),
+        const [naturalData, costData, irritationData] = await Promise.all([
+          fetchSuggestions(formulaId, "natural"),
+          fetchSuggestions(formulaId, "cost"),
+          fetchSuggestions(formulaId, "irritation"),
         ]);
         if (!cancelled) {
-          setNatural(
-            Array.isArray(naturalData) ? naturalData : (naturalData.suggestions ?? []),
-          );
-          setCost(Array.isArray(costData) ? costData : (costData.suggestions ?? []));
+          setNatural(naturalData);
+          setCost(costData);
+          setIrritation(irritationData);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -80,6 +85,10 @@ export function ReformulationPanel({ formulaId }: { formulaId: string }) {
           <DollarSign className="mr-1 h-4 w-4" />
           Bajar costos
         </TabsTrigger>
+        <TabsTrigger value="irritation">
+          <ShieldAlert className="mr-1 h-4 w-4" />
+          Menos irritación
+        </TabsTrigger>
       </TabsList>
       <TabsContent value="natural" className="mt-4">
         <Card>
@@ -100,6 +109,16 @@ export function ReformulationPanel({ formulaId }: { formulaId: string }) {
           </CardHeader>
           <CardContent>
             {loading ? <p>Cargando...</p> : <SuggestionList items={cost} />}
+          </CardContent>
+        </Card>
+      </TabsContent>
+      <TabsContent value="irritation" className="mt-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Reducción de irritación</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? <p>Cargando...</p> : <SuggestionList items={irritation} />}
           </CardContent>
         </Card>
       </TabsContent>

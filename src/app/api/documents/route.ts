@@ -4,8 +4,12 @@ import {
   generateFormulaPdf,
   generateFormulaDocumentJson,
 } from "@/lib/documents/pdf-generator";
+import { requireApiAuth } from "@/lib/auth/api-guard";
 
 export async function GET(request: NextRequest) {
+  const auth = await requireApiAuth();
+  if (!auth.ok) return auth.response;
+
   const formulaId = request.nextUrl.searchParams.get("formulaId");
   const format = request.nextUrl.searchParams.get("format") ?? "pdf";
 
@@ -14,7 +18,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const analysis = await getFormulaAnalysis(formulaId);
+    const analysis = await getFormulaAnalysis(formulaId, { userId: auth.user.id });
     const ingredients = await getAllIngredients();
 
     if (format === "json") {

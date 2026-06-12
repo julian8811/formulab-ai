@@ -4,6 +4,7 @@ import {
   upsertIngredient,
   deleteIngredient,
 } from "@/lib/data/repository";
+import { requireApiAuth } from "@/lib/auth/api-guard";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -19,6 +20,9 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 }
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  const auth = await requireApiAuth();
+  if (!auth.ok) return auth.response;
+
   const { id } = await params;
   const existing = await getIngredientById(id);
   if (!existing) {
@@ -38,6 +42,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 }
 
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+  const auth = await requireApiAuth();
+  if (!auth.ok) return auth.response;
+
   const { id } = await params;
   await deleteIngredient(id);
   return NextResponse.json({ ok: true });

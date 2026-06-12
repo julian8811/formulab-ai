@@ -32,7 +32,12 @@ import {
   dbGetFormulaVersionId,
   isFormulasDbAvailable,
 } from "@/lib/data/formulas-repository";
-import { saveFormulaAnalysis, isScoresDbAvailable } from "@/lib/data/scores-repository";
+import {
+  saveFormulaAnalysis,
+  getLatestScores,
+  isScoresDbAvailable,
+} from "@/lib/data/scores-repository";
+import { getUserDefaultProjectId } from "@/lib/auth/organizations";
 import type { Positioning } from "@/types";
 
 export type { StoredFormula };
@@ -115,10 +120,10 @@ async function buildFormulaLines(
     .filter(Boolean) as FormulaLineInput[];
 }
 
-export async function getFormulas(): Promise<StoredFormula[]> {
+export async function getFormulas(userId?: string): Promise<StoredFormula[]> {
   if (isFormulasDbAvailable()) {
     try {
-      const rows = await dbGetFormulas();
+      const rows = await dbGetFormulas(userId);
       if (rows.length > 0 || !shouldUseInMemoryStore()) return rows;
     } catch {
       if (!shouldUseInMemoryStore()) return [];
@@ -129,10 +134,13 @@ export async function getFormulas(): Promise<StoredFormula[]> {
   return formulasStore;
 }
 
-export async function getFormulaById(id: string): Promise<StoredFormula | undefined> {
+export async function getFormulaById(
+  id: string,
+  userId?: string,
+): Promise<StoredFormula | undefined> {
   if (isFormulasDbAvailable()) {
     try {
-      const row = await dbGetFormulaById(id);
+      const row = await dbGetFormulaById(id, userId);
       if (row || !shouldUseInMemoryStore()) return row;
     } catch {
       if (!shouldUseInMemoryStore()) return undefined;
@@ -149,10 +157,12 @@ export async function createFormula(
   const user = await getCurrentUser();
 
   if (isFormulasDbAvailable()) {
+    const projectId = user?.id ? await getUserDefaultProjectId(user.id) : undefined;
     return await dbCreateFormula({
       ...data,
       positioning: data.positioning as Positioning[],
       userId: user?.id,
+      projectId,
     });
   }
 
@@ -176,12 +186,17 @@ export async function createFormula(
 export async function updateFormula(
   id: string,
   input: Partial<z.infer<typeof formulaSchema>>,
+  userId?: string,
 ): Promise<StoredFormula | null> {
   if (isFormulasDbAvailable()) {
-    return await dbUpdateFormula(id, {
-      ...input,
-      positioning: input.positioning as Positioning[] | undefined,
-    });
+    return await dbUpdateFormula(
+      id,
+      {
+        ...input,
+        positioning: input.positioning as Positioning[] | undefined,
+      },
+      userId,
+    );
   }
 
   if (!shouldUseInMemoryStore()) return null;
@@ -199,9 +214,9 @@ export async function updateFormula(
   return updated;
 }
 
-export async function deleteFormula(id: string): Promise<boolean> {
+export async function deleteFormula(id: string, userId?: string): Promise<boolean> {
   if (isFormulasDbAvailable()) {
-    return await dbDeleteFormula(id);
+    return await dbDeleteFormula(id, userId);
   }
   if (!shouldUseInMemoryStore()) return false;
 
@@ -228,15 +243,29 @@ export async function validateFormulaById(formulaId: string) {
   });
 }
 
-export async function getFormulaAnalysis(formulaId: string, versionNumber?: number) {
+export async function getFormulaAnalysis(
+  formulaId: string,
+  options?: { versionNumber?: number; userId?: string; refresh?: boolean },
+) {
+  const { versionNumber, userId, refresh } = options ?? {};
   let formula: StoredFormula | undefined;
   if (versionNumber != null && isFormulasDbAvailable()) {
-    formula = await dbGetFormulaByVersion(formulaId, versionNumber);
+    formula = await dbGetFormulaByVersion(formulaId, versionNumber, userId);
   }
   if (!formula) {
-    formula = await getFormulaById(formulaId);
+    formula = await getFormulaById(formulaId, userId);
   }
   if (!formula) throw new Error("Fórmula no encontrada");
+
+  let versionId: string | undefined;
+  let cached = null as Awaited<ReturnType<typeof getLatestScores>> | null;
+
+  if (isScoresDbAvailable() && isFormulasDbAvailable() && !refresh) {
+    versionId = await dbGetFormulaVersionId(formulaId, formula.versionNumber);
+    if (versionId) {
+      cached = await getLatestScores(versionId);
+    }
+  }
 
   const lines = await buildFormulaLines(formula.lines);
   const incompatibilities = await getAllIncompatibilities();
@@ -252,16 +281,18 @@ export async function getFormulaAnalysis(formulaId: string, versionNumber?: numb
   };
 
   const alerts = validateFormula(validationInput);
-  const score = scoreFromLines(
-    lines,
-    formula.targetAudience,
-    formula.claims,
-    claimRules,
-    validationInput,
-  );
+  const score =
+    cached?.score ??
+    scoreFromLines(
+      lines,
+      formula.targetAudience,
+      formula.claims,
+      claimRules,
+      validationInput,
+    );
   const stability = assessStability(validationInput);
   const microbiology = assessMicrobiology(validationInput);
-  const costs = calculateCostScenarios({ lines });
+  const costs = cached?.costs.length ? cached.costs : calculateCostScenarios({ lines });
   const expensive = findMostExpensiveIngredients(lines);
   const claimResults = validateMultipleClaims(
     formula.claims,
@@ -278,11 +309,12 @@ export async function getFormulaAnalysis(formulaId: string, versionNumber?: numb
     costs,
     expensive,
     claimResults,
+    cached: Boolean(cached),
   };
 
-  if (isScoresDbAvailable() && isFormulasDbAvailable()) {
+  if (!cached && isScoresDbAvailable() && isFormulasDbAvailable()) {
     try {
-      const versionId = await dbGetFormulaVersionId(formulaId, formula.versionNumber);
+      versionId ??= await dbGetFormulaVersionId(formulaId, formula.versionNumber);
       if (versionId) {
         await saveFormulaAnalysis(versionId, score, costs);
       }

@@ -5,6 +5,7 @@ import {
   saveIngredientDocument,
 } from "@/lib/data/ingredient-documents";
 import { isProduction } from "@/lib/auth/guard";
+import { requireApiAuth } from "@/lib/auth/api-guard";
 import type { DocumentType } from "@/types";
 
 const BUCKET = "ingredient-documents";
@@ -21,12 +22,18 @@ interface RouteParams {
 }
 
 export async function GET(_request: NextRequest, { params }: RouteParams) {
+  const auth = await requireApiAuth();
+  if (!auth.ok) return auth.response;
+
   const { id } = await params;
   const docs = await getIngredientDocuments(id);
   return NextResponse.json(docs);
 }
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
+  const auth = await requireApiAuth();
+  if (!auth.ok) return auth.response;
+
   const { id: ingredientId } = await params;
 
   try {

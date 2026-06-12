@@ -10,10 +10,12 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getFormulas, getAllIngredients, getProductTemplates } from "@/lib/actions";
+import { requireAuth } from "@/lib/auth/guard";
 import { FlaskConical, Database, Shield, FileText, Plus, Sparkles } from "lucide-react";
 
 export default async function DashboardPage() {
-  const formulas = await getFormulas();
+  const user = await requireAuth();
+  const formulas = await getFormulas(user.id);
   const ingredients = await getAllIngredients();
   const templates = await getProductTemplates();
 

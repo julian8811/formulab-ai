@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createFormula, getFormulas } from "@/lib/actions";
+import { requireApiAuth } from "@/lib/auth/api-guard";
 
 export async function GET() {
-  const formulas = await getFormulas();
+  const auth = await requireApiAuth();
+  if (!auth.ok) return auth.response;
+
+  const formulas = await getFormulas(auth.user.id);
   return NextResponse.json(formulas);
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireApiAuth();
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await request.json();
     const formula = await createFormula(body);

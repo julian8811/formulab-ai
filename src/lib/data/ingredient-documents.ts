@@ -88,14 +88,60 @@ export async function saveIngredientDocument(
   };
 }
 
-export async function deleteIngredientDocument(id: string): Promise<void> {
+export async function deleteIngredientDocument(
+  id: string,
+): Promise<IngredientDocument | null> {
   if (!isDatabaseConfigured()) {
-    if (!shouldUseInMemoryStore()) return;
+    if (!shouldUseInMemoryStore()) return null;
     const idx = memoryDocs.findIndex((d) => d.id === id);
-    if (idx >= 0) memoryDocs.splice(idx, 1);
-    return;
+    if (idx < 0) return null;
+    const [removed] = memoryDocs.splice(idx, 1);
+    return removed;
   }
 
   const db = getDb();
+  const [row] = await db
+    .select()
+    .from(ingredientDocuments)
+    .where(eq(ingredientDocuments.id, id))
+    .limit(1);
+
+  if (!row) return null;
+
   await db.delete(ingredientDocuments).where(eq(ingredientDocuments.id, id));
+
+  return {
+    id: row.id,
+    ingredientId: row.ingredientId,
+    documentType: row.documentType,
+    fileName: row.fileName,
+    storagePath: row.storagePath,
+    uploadedAt: row.uploadedAt.toISOString(),
+  };
+}
+
+export async function getIngredientDocumentById(
+  id: string,
+): Promise<IngredientDocument | null> {
+  if (!isDatabaseConfigured()) {
+    return memoryDocs.find((d) => d.id === id) ?? null;
+  }
+
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(ingredientDocuments)
+    .where(eq(ingredientDocuments.id, id))
+    .limit(1);
+
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    ingredientId: row.ingredientId,
+    documentType: row.documentType,
+    fileName: row.fileName,
+    storagePath: row.storagePath,
+    uploadedAt: row.uploadedAt.toISOString(),
+  };
 }

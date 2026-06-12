@@ -10,14 +10,16 @@ import {
 } from "@/components/ui/table";
 import { FormulaSelector } from "@/components/formulas/formula-selector";
 import { getFormulas, getFormulaAnalysis } from "@/lib/actions";
+import { requireAuth } from "@/lib/auth/guard";
 
 interface PageProps {
   searchParams: Promise<{ formula?: string }>;
 }
 
 export default async function CostsPage({ searchParams }: PageProps) {
+  const user = await requireAuth();
   const params = await searchParams;
-  const formulas = await getFormulas();
+  const formulas = await getFormulas(user.id);
   const formulaOptions = formulas.map((f) => ({ id: f.id, name: f.name }));
   const selectedId =
     params.formula && formulas.some((f) => f.id === params.formula)
@@ -27,7 +29,7 @@ export default async function CostsPage({ searchParams }: PageProps) {
   let analysis = null;
   if (selectedId) {
     try {
-      analysis = await getFormulaAnalysis(selectedId);
+      analysis = await getFormulaAnalysis(selectedId, { userId: user.id });
     } catch {
       analysis = null;
     }

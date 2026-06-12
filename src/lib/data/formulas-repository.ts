@@ -42,6 +42,7 @@ export interface CreateFormulaInput {
   claims?: string[];
   market?: Market;
   userId?: string;
+  projectId?: string;
   lines: StoredFormula["lines"];
 }
 
@@ -103,9 +104,37 @@ async function loadFormulaWithLines(
   return rowToFormula(formula, version, lines);
 }
 
-export async function dbGetFormulas(): Promise<StoredFormula[]> {
+async function getFormulaOwnerId(formulaId: string): Promise<string | null | undefined> {
   const db = getDb();
-  const allFormulas = await db.select().from(formulas).orderBy(desc(formulas.updatedAt));
+  const [row] = await db
+    .select({ userId: formulas.userId })
+    .from(formulas)
+    .where(eq(formulas.id, formulaId))
+    .limit(1);
+  return row?.userId;
+}
+
+export async function canAccessFormula(
+  formulaId: string,
+  userId?: string,
+): Promise<boolean> {
+  if (!userId) return true;
+
+  const ownerId = await getFormulaOwnerId(formulaId);
+  if (ownerId === undefined) return false;
+  if (ownerId === null) return false;
+  return ownerId === userId;
+}
+
+export async function dbGetFormulas(userId?: string): Promise<StoredFormula[]> {
+  const db = getDb();
+  const allFormulas = userId
+    ? await db
+        .select()
+        .from(formulas)
+        .where(eq(formulas.userId, userId))
+        .orderBy(desc(formulas.updatedAt))
+    : await db.select().from(formulas).orderBy(desc(formulas.updatedAt));
 
   const results: StoredFormula[] = [];
   for (const f of allFormulas) {
@@ -115,7 +144,13 @@ export async function dbGetFormulas(): Promise<StoredFormula[]> {
   return results;
 }
 
-export async function dbGetFormulaById(id: string): Promise<StoredFormula | undefined> {
+export async function dbGetFormulaById(
+  id: string,
+  userId?: string,
+): Promise<StoredFormula | undefined> {
+  if (userId && !(await canAccessFormula(id, userId))) {
+    return undefined;
+  }
   return loadFormulaWithLines(id);
 }
 
@@ -147,7 +182,11 @@ export async function dbListFormulaVersions(
 export async function dbGetFormulaByVersion(
   formulaId: string,
   versionNumber: number,
+  userId?: string,
 ): Promise<StoredFormula | undefined> {
+  if (userId && !(await canAccessFormula(formulaId, userId))) {
+    return undefined;
+  }
   const db = getDb();
   const [formula] = await db
     .select()
@@ -214,6 +253,7 @@ export async function dbCreateFormula(input: CreateFormulaInput): Promise<Stored
       claims: input.claims ?? [],
       market: input.market ?? "colombia",
       userId: input.userId,
+      projectId: input.projectId,
     })
     .returning();
 
@@ -243,7 +283,11 @@ export async function dbCreateFormula(input: CreateFormulaInput): Promise<Stored
 export async function dbUpdateFormula(
   id: string,
   input: Partial<CreateFormulaInput>,
+  userId?: string,
 ): Promise<StoredFormula | null> {
+  if (userId && !(await canAccessFormula(id, userId))) {
+    return null;
+  }
   const existing = await loadFormulaWithLines(id);
   if (!existing) return null;
 
@@ -301,7 +345,10 @@ export async function dbUpdateFormula(
   return (await loadFormulaWithLines(id)) ?? null;
 }
 
-export async function dbDeleteFormula(id: string): Promise<boolean> {
+export async function dbDeleteFormula(id: string, userId?: string): Promise<boolean> {
+  if (userId && !(await canAccessFormula(id, userId))) {
+    return false;
+  }
   const db = getDb();
   await db.delete(formulas).where(eq(formulas.id, id));
   return true;

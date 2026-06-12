@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getFormulaAnalysis, getAllIngredients } from "@/lib/actions";
+import { requireAuth } from "@/lib/auth/guard";
 import {
   dbListFormulaVersions,
   isFormulasDbAvailable,
@@ -29,16 +30,18 @@ interface PageProps {
 }
 
 export default async function FormulaDetailPage({ params, searchParams }: PageProps) {
+  const user = await requireAuth();
   const { id } = await params;
   const query = await searchParams;
   const versionNumber = query.version ? parseInt(query.version, 10) : undefined;
 
   let analysis;
   try {
-    analysis = await getFormulaAnalysis(
-      id,
-      versionNumber != null && !Number.isNaN(versionNumber) ? versionNumber : undefined,
-    );
+    analysis = await getFormulaAnalysis(id, {
+      userId: user.id,
+      versionNumber:
+        versionNumber != null && !Number.isNaN(versionNumber) ? versionNumber : undefined,
+    });
   } catch {
     notFound();
   }

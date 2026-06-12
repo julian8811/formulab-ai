@@ -4,10 +4,12 @@ import { LinkButton } from "@/components/ui/link-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getFormulas } from "@/lib/actions";
+import { requireAuth } from "@/lib/auth/guard";
 import { Plus } from "lucide-react";
 
 export default async function FormulasPage() {
-  const formulas = await getFormulas();
+  const user = await requireAuth();
+  const formulas = await getFormulas(user.id);
 
   return (
     <div>

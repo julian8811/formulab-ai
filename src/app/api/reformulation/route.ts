@@ -3,6 +3,7 @@ import { getFormulaById } from "@/lib/actions";
 import { suggestReformulationWithAi } from "@/lib/ai/reformulation-agent";
 import { suggestReformulation } from "@/lib/reformulation/suggester";
 import { getAllIngredients } from "@/lib/data/repository";
+import { requireApiAuth } from "@/lib/auth/api-guard";
 import type { FormulaLineInput } from "@/lib/validation/engine";
 
 async function buildFormulaLines(
@@ -30,6 +31,9 @@ async function buildFormulaLines(
 }
 
 export async function GET(request: NextRequest) {
+  const auth = await requireApiAuth();
+  if (!auth.ok) return auth.response;
+
   const formulaId = request.nextUrl.searchParams.get("formulaId");
   const goal = request.nextUrl.searchParams.get("goal") as
     | "natural"
@@ -41,7 +45,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const formula = await getFormulaById(formulaId);
+    const formula = await getFormulaById(formulaId, auth.user.id);
     if (!formula) {
       return NextResponse.json({ error: "Fórmula no encontrada" }, { status: 404 });
     }

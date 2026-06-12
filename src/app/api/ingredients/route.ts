@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllIngredients, upsertIngredient } from "@/lib/data/repository";
+import { requireApiAuth } from "@/lib/auth/api-guard";
 import { z } from "zod";
 
 const ingredientSchema = z.object({
@@ -35,6 +36,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireApiAuth();
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await request.json();
     const data = ingredientSchema.parse(body);
