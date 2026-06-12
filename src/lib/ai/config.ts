@@ -17,17 +17,18 @@ type GenerateAiTextOptions = {
 export function getAvailableAiMethods(): AiAuthMethod[] {
   const methods: AiAuthMethod[] = [];
 
-  if (process.env.VERCEL === "1" && process.env.VERCEL_OIDC_TOKEN) {
+  // En Vercel el AI SDK usa OIDC automáticamente con model strings provider/model
+  if (process.env.VERCEL === "1") {
+    methods.push("vercel-oidc");
+  } else if (process.env.VERCEL_OIDC_TOKEN) {
     methods.push("vercel-oidc");
   }
+
   if (process.env.OPENAI_API_KEY) {
     methods.push("openai-direct");
   }
   if (process.env.AI_GATEWAY_API_KEY) {
     methods.push("ai-gateway-key");
-  }
-  if (process.env.VERCEL_OIDC_TOKEN && !methods.includes("vercel-oidc")) {
-    methods.push("vercel-oidc");
   }
 
   return methods;
@@ -71,9 +72,7 @@ function isFailoverError(error: unknown): boolean {
   );
 }
 
-export async function generateAiText(
-  options: GenerateAiTextOptions,
-): Promise<{
+export async function generateAiText(options: GenerateAiTextOptions): Promise<{
   result: Awaited<ReturnType<typeof generateText>>;
   authMethod: AiAuthMethod;
 }> {
