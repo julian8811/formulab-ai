@@ -34,8 +34,11 @@ Configura en **Project → Settings → Environment Variables** (Production, Pre
 
 Opcional (IA):
 
-- `OPENAI_API_KEY` — OpenAI directo (recomendado si ya tienes cuenta OpenAI)
-- `AI_GATEWAY_API_KEY` — Vercel AI Gateway (alternativa con routing unificado)
+- `OPENAI_API_KEY` — OpenAI directo (recomendado; activa billing en OpenAI)
+- `AI_GATEWAY_API_KEY` — Vercel AI Gateway (alternativa; requiere tarjeta en Vercel)
+- `VERCEL_OIDC_TOKEN` — automático en deploys Vercel (`vercel env pull` en local)
+
+Diagnóstico: `GET /api/ai/status` en la app desplegada.
 
 ### CLI
 

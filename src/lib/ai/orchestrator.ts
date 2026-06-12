@@ -1,23 +1,16 @@
 import { generateText } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
 import {
   createFormulatorTools,
   createRegulatoryTools,
   AGENT_PROMPTS,
 } from "@/lib/ai/tools";
+import { getAiBillingHint, getChatModel, isAiConfigured } from "@/lib/ai/config";
 import type { AgentType } from "@/types";
-
-const openai = createOpenAI({
-  apiKey: process.env.AI_GATEWAY_API_KEY ?? process.env.OPENAI_API_KEY,
-  baseURL: process.env.AI_GATEWAY_API_KEY ? "https://ai-gateway.vercel.sh/v1" : undefined,
-});
 
 export async function runAgent(
   agentType: AgentType,
   userMessage: string,
-): Promise<{ text: string; usedTools: boolean }> {
-  const model = openai("gpt-4o-mini");
-
+): Promise<{ text: string; usedTools: boolean; mode: "live" | "demo" }> {
   const systemPrompt =
     AGENT_PROMPTS[agentType as keyof typeof AGENT_PROMPTS] ?? AGENT_PROMPTS.formulator;
 
@@ -30,16 +23,17 @@ export async function runAgent(
     tools = { ...createFormulatorTools(), ...createRegulatoryTools() };
   }
 
-  if (!process.env.AI_GATEWAY_API_KEY && !process.env.OPENAI_API_KEY) {
+  if (!isAiConfigured()) {
     return {
       text: getStubResponse(agentType, userMessage),
       usedTools: false,
+      mode: "demo",
     };
   }
 
   try {
     const result = await generateText({
-      model,
+      model: getChatModel(),
       system: systemPrompt,
       prompt: userMessage,
       tools,
@@ -48,11 +42,18 @@ export async function runAgent(
     return {
       text: result.text,
       usedTools: (result.toolCalls?.length ?? 0) > 0,
+      mode: "live",
     };
   } catch (error) {
+    const billingHint = getAiBillingHint(error);
+    const detail = error instanceof Error ? error.message : "Error desconocido";
+
     return {
-      text: `Error al consultar IA: ${error instanceof Error ? error.message : "Error desconocido"}. Modo demo activo.\n\n${getStubResponse(agentType, userMessage)}`,
+      text: billingHint
+        ? `**IA no disponible (billing)**\n\n${billingHint}\n\n---\n\n${getStubResponse(agentType, userMessage)}`
+        : `**Error al consultar IA:** ${detail}\n\n---\n\n${getStubResponse(agentType, userMessage)}`,
       usedTools: false,
+      mode: "demo",
     };
   }
 }
@@ -75,9 +76,7 @@ Propongo una fórmula base consultando la BD de ingredientes:
 | C | Conservante | Protección | 0.8% |
 
 **Alertas:** Revisar pH (objetivo 5.5), fragancia ≤0.2%, challenge test obligatorio.
-**Pruebas:** Estabilidad, microbiología, compatibilidad con bomba foamer.
-
-> Configura OPENAI_API_KEY o AI_GATEWAY_API_KEY para respuestas enriquecidas con tools.`,
+**Pruebas:** Estabilidad, microbiología, compatibilidad con bomba foamer.`,
 
     regulatory: `**Agente Regulatorio (modo demo)**
 

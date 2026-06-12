@@ -3,10 +3,12 @@
  * Requires DATABASE_URL and pgvector extension enabled.
  */
 
+import { embed } from "ai";
 import { isDatabaseConfigured, getDb } from "@/db";
 import { ingredients } from "@/db/schema";
 import { sql } from "drizzle-orm";
 import { searchIngredients } from "@/lib/data/repository";
+import { getEmbeddingModel, isAiConfigured } from "@/lib/ai/config";
 
 export async function semanticSearchIngredients(
   query: string,
@@ -34,31 +36,17 @@ export async function semanticSearchIngredients(
 }
 
 export async function generateEmbedding(text: string): Promise<number[] | null> {
-  if (!process.env.AI_GATEWAY_API_KEY && !process.env.OPENAI_API_KEY) {
+  if (!isAiConfigured()) {
     return null;
   }
 
-  const apiKey = process.env.AI_GATEWAY_API_KEY ?? process.env.OPENAI_API_KEY;
-  const baseUrl = process.env.AI_GATEWAY_API_KEY
-    ? "https://ai-gateway.vercel.sh/v1"
-    : "https://api.openai.com/v1";
-
   try {
-    const response = await fetch(`${baseUrl}/embeddings`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "text-embedding-3-small",
-        input: text,
-      }),
+    const result = await embed({
+      model: getEmbeddingModel(),
+      value: text,
     });
 
-    if (!response.ok) return null;
-    const data = await response.json();
-    return data.data?.[0]?.embedding ?? null;
+    return result.embedding;
   } catch {
     return null;
   }

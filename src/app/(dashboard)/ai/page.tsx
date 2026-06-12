@@ -97,8 +97,11 @@ export default function AIPage() {
         )}
 
         <p className="text-xs text-muted-foreground">
-          La IA trabaja con bases de datos verificables. No inventa seguridad. Configura
-          OPENAI_API_KEY o AI_GATEWAY_API_KEY para respuestas enriquecidas con tools.
+          La IA trabaja con bases de datos verificables. En producción usa Vercel AI
+          Gateway (OIDC automático) o OpenAI directo. Estado:{" "}
+          <a href="/api/ai/status" className="underline" target="_blank" rel="noreferrer">
+            /api/ai/status
+          </a>
         </p>
       </div>
     </div>
