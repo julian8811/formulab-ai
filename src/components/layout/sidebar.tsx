@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { UserMenu } from "@/components/auth/user-menu";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -107,7 +108,8 @@ export function AppHeader({ title }: { title: string }) {
     <header className="flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
       <MobileNav />
       <Separator orientation="vertical" className="h-6 lg:hidden" />
-      <h1 className="text-lg font-semibold">{title}</h1>
+      <h1 className="flex-1 text-lg font-semibold">{title}</h1>
+      <UserMenu />
     </header>
   );
 }

@@ -13,6 +13,7 @@
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:seed": "npx tsx scripts/seed-api.ts",
+    "db:embed": "npx tsx scripts/embed-ingredients.ts",
     "db:seed:direct": "npx tsx scripts/seed.ts",
     "db:migrate": "node scripts/apply-migration.mjs",
     "ai:check": "node scripts/check-ai.mjs",

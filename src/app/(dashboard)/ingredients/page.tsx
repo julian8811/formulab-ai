@@ -1,17 +1,9 @@
 import { AppHeader } from "@/components/layout/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { LinkButton } from "@/components/ui/link-button";
 import { getAllIngredients } from "@/lib/actions";
-import { RiskBadge } from "@/components/shared/status-badge";
-import { IngredientsSearch } from "@/components/ingredients/ingredients-search";
+import { IngredientsTable } from "@/components/ingredients/ingredients-table";
+import { Plus } from "lucide-react";
 
 export default async function IngredientsPage() {
   const ingredients = await getAllIngredients();
@@ -24,7 +16,10 @@ export default async function IngredientsPage() {
           <p className="text-muted-foreground">
             {ingredients.length} materias primas catalogadas
           </p>
-          <IngredientsSearch />
+          <LinkButton href="/ingredients/new">
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo ingrediente
+          </LinkButton>
         </div>
 
         <Card>
@@ -32,46 +27,7 @@ export default async function IngredientsPage() {
             <CardTitle>Ingredientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>INCI</TableHead>
-                  <TableHead>Nombre común</TableHead>
-                  <TableHead>Función</TableHead>
-                  <TableHead>Rango %</TableHead>
-                  <TableHead>Perros</TableHead>
-                  <TableHead>Origen</TableHead>
-                  <TableHead>Costo/kg</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ingredients.map((ing) => (
-                  <TableRow key={ing.id}>
-                    <TableCell className="font-mono text-xs">{ing.inciName}</TableCell>
-                    <TableCell>{ing.commonName}</TableCell>
-                    <TableCell className="text-sm">{ing.function}</TableCell>
-                    <TableCell>
-                      {ing.minPercentage}-{ing.maxPercentage}%
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          ing.dogCompatibility === "approved"
-                            ? "default"
-                            : ing.dogCompatibility === "caution"
-                              ? "secondary"
-                              : "destructive"
-                        }
-                      >
-                        {ing.dogCompatibility}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{ing.origin}</TableCell>
-                    <TableCell>${ing.costPerKg}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <IngredientsTable ingredients={ingredients} />
           </CardContent>
         </Card>
       </div>

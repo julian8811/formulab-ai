@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getRegulatoryProfiles } from "@/lib/actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Shield, AlertTriangle } from "lucide-react";
+import { RegulatoryImportPanel } from "@/components/regulatory/import-panel";
 
 export default async function RegulatoryPage() {
   const profiles = await getRegulatoryProfiles();
@@ -13,6 +14,8 @@ export default async function RegulatoryPage() {
     <div>
       <AppHeader title="Módulo regulatorio" />
       <div className="space-y-6 p-6">
+        <RegulatoryImportPanel />
+
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Diferenciación legal importante</AlertTitle>

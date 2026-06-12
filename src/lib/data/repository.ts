@@ -123,36 +123,46 @@ export async function upsertIngredient(
   }
 
   const db = getDb();
-  const [row] = await db
-    .insert(ingredients)
-    .values({
-      id: data.id,
-      commercialName: data.commercialName,
-      inciName: data.inciName,
-      commonName: data.commonName,
-      function: data.function,
-      supplier: data.supplier,
-      origin: data.origin,
-      ionicCharge: data.ionicCharge,
-      minPercentage: String(data.minPercentage),
-      maxPercentage: String(data.maxPercentage),
-      phStabilityMin: data.phStabilityMin ? String(data.phStabilityMin) : null,
-      phStabilityMax: data.phStabilityMax ? String(data.phStabilityMax) : null,
-      solubility: data.solubility,
-      restrictions: data.restrictions,
-      allergens: data.allergens,
-      biodegradable: data.biodegradable,
-      certifications: data.certifications,
-      approvedForHuman: data.approvedForHuman,
-      recommendedUse: data.recommendedUse,
-      dogCompatibility: data.dogCompatibility,
-      lickRisk: data.lickRisk,
-      fragranceRisk: data.fragranceRisk,
-      heatSensitive: data.heatSensitive,
-      costPerKg: String(data.costPerKg),
-      naturalOriginIndex: String(data.naturalOriginIndex),
-    })
-    .returning();
+  const values = {
+    id: data.id,
+    commercialName: data.commercialName,
+    inciName: data.inciName,
+    commonName: data.commonName,
+    function: data.function,
+    supplier: data.supplier,
+    origin: data.origin,
+    ionicCharge: data.ionicCharge,
+    minPercentage: String(data.minPercentage),
+    maxPercentage: String(data.maxPercentage),
+    phStabilityMin: data.phStabilityMin ? String(data.phStabilityMin) : null,
+    phStabilityMax: data.phStabilityMax ? String(data.phStabilityMax) : null,
+    solubility: data.solubility,
+    restrictions: data.restrictions,
+    allergens: data.allergens,
+    biodegradable: data.biodegradable,
+    certifications: data.certifications,
+    approvedForHuman: data.approvedForHuman,
+    recommendedUse: data.recommendedUse,
+    dogCompatibility: data.dogCompatibility,
+    lickRisk: data.lickRisk,
+    fragranceRisk: data.fragranceRisk,
+    heatSensitive: data.heatSensitive,
+    costPerKg: String(data.costPerKg),
+    naturalOriginIndex: String(data.naturalOriginIndex),
+    updatedAt: new Date(),
+  };
+
+  const { id: _id, ...updateFields } = values;
+  const [row] = data.id
+    ? await db
+        .insert(ingredients)
+        .values(values)
+        .onConflictDoUpdate({
+          target: ingredients.id,
+          set: updateFields,
+        })
+        .returning()
+    : await db.insert(ingredients).values(values).returning();
 
   return {
     id: row.id,

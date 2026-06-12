@@ -1,0 +1,233 @@
+import { isDatabaseConfigured, getDb } from "@/db";
+import { formulas, formulaVersions, formulaIngredients } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
+import type {
+  ProductType,
+  TargetAudience,
+  ProductFormat,
+  Positioning,
+  Market,
+} from "@/types";
+
+export interface StoredFormula {
+  id: string;
+  name: string;
+  description?: string;
+  productType: ProductType;
+  targetAudience: TargetAudience;
+  productFormat: ProductFormat;
+  positioning: Positioning[];
+  targetPh?: number;
+  claims: string[];
+  market: Market;
+  lines: Array<{
+    ingredientId: string;
+    phase: string;
+    percentage: number;
+    functionInFormula?: string;
+  }>;
+  versionNumber: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateFormulaInput {
+  name: string;
+  description?: string;
+  productType: ProductType;
+  targetAudience: TargetAudience;
+  productFormat: ProductFormat;
+  positioning?: Positioning[];
+  targetPh?: number;
+  claims?: string[];
+  market?: Market;
+  userId?: string;
+  lines: StoredFormula["lines"];
+}
+
+function rowToFormula(
+  formula: typeof formulas.$inferSelect,
+  version: typeof formulaVersions.$inferSelect,
+  lines: (typeof formulaIngredients.$inferSelect)[],
+): StoredFormula {
+  return {
+    id: formula.id,
+    name: formula.name,
+    description: formula.description ?? undefined,
+    productType: formula.productType,
+    targetAudience: formula.targetAudience,
+    productFormat: formula.productFormat,
+    positioning: (formula.positioning as Positioning[]) ?? [],
+    targetPh: formula.targetPh ? Number(formula.targetPh) : undefined,
+    claims: (formula.claims as string[]) ?? [],
+    market: formula.market ?? "colombia",
+    versionNumber: version.versionNumber,
+    lines: lines.map((l) => ({
+      ingredientId: l.ingredientId,
+      phase: l.phase,
+      percentage: Number(l.percentage),
+      functionInFormula: l.functionInFormula ?? undefined,
+    })),
+    createdAt: formula.createdAt.toISOString(),
+    updatedAt: formula.updatedAt.toISOString(),
+  };
+}
+
+async function loadFormulaWithLines(
+  formulaId: string,
+): Promise<StoredFormula | undefined> {
+  const db = getDb();
+  const [formula] = await db
+    .select()
+    .from(formulas)
+    .where(eq(formulas.id, formulaId))
+    .limit(1);
+
+  if (!formula) return undefined;
+
+  const [version] = await db
+    .select()
+    .from(formulaVersions)
+    .where(eq(formulaVersions.formulaId, formulaId))
+    .orderBy(desc(formulaVersions.versionNumber))
+    .limit(1);
+
+  if (!version) return undefined;
+
+  const lines = await db
+    .select()
+    .from(formulaIngredients)
+    .where(eq(formulaIngredients.formulaVersionId, version.id))
+    .orderBy(formulaIngredients.sortOrder);
+
+  return rowToFormula(formula, version, lines);
+}
+
+export async function dbGetFormulas(): Promise<StoredFormula[]> {
+  const db = getDb();
+  const allFormulas = await db.select().from(formulas).orderBy(desc(formulas.updatedAt));
+
+  const results: StoredFormula[] = [];
+  for (const f of allFormulas) {
+    const stored = await loadFormulaWithLines(f.id);
+    if (stored) results.push(stored);
+  }
+  return results;
+}
+
+export async function dbGetFormulaById(id: string): Promise<StoredFormula | undefined> {
+  return loadFormulaWithLines(id);
+}
+
+export async function dbCreateFormula(input: CreateFormulaInput): Promise<StoredFormula> {
+  const db = getDb();
+
+  const [formula] = await db
+    .insert(formulas)
+    .values({
+      name: input.name,
+      description: input.description,
+      productType: input.productType,
+      targetAudience: input.targetAudience,
+      productFormat: input.productFormat,
+      positioning: input.positioning ?? [],
+      targetPh: input.targetPh != null ? String(input.targetPh) : null,
+      claims: input.claims ?? [],
+      market: input.market ?? "colombia",
+      userId: input.userId,
+    })
+    .returning();
+
+  const [version] = await db
+    .insert(formulaVersions)
+    .values({ formulaId: formula.id, versionNumber: 1, notes: "Versión inicial" })
+    .returning();
+
+  if (input.lines.length > 0) {
+    await db.insert(formulaIngredients).values(
+      input.lines.map((line, i) => ({
+        formulaVersionId: version.id,
+        ingredientId: line.ingredientId,
+        phase: line.phase,
+        percentage: String(line.percentage),
+        functionInFormula: line.functionInFormula,
+        sortOrder: i,
+      })),
+    );
+  }
+
+  const stored = await loadFormulaWithLines(formula.id);
+  if (!stored) throw new Error("Error al crear fórmula");
+  return stored;
+}
+
+export async function dbUpdateFormula(
+  id: string,
+  input: Partial<CreateFormulaInput>,
+): Promise<StoredFormula | null> {
+  const existing = await loadFormulaWithLines(id);
+  if (!existing) return null;
+
+  const db = getDb();
+
+  await db
+    .update(formulas)
+    .set({
+      ...(input.name != null && { name: input.name }),
+      ...(input.description !== undefined && { description: input.description }),
+      ...(input.productType != null && { productType: input.productType }),
+      ...(input.targetAudience != null && { targetAudience: input.targetAudience }),
+      ...(input.productFormat != null && { productFormat: input.productFormat }),
+      ...(input.positioning != null && { positioning: input.positioning }),
+      ...(input.targetPh !== undefined && {
+        targetPh: input.targetPh != null ? String(input.targetPh) : null,
+      }),
+      ...(input.claims != null && { claims: input.claims }),
+      ...(input.market != null && { market: input.market }),
+      updatedAt: new Date(),
+    })
+    .where(eq(formulas.id, id));
+
+  if (input.lines) {
+    const [currentVersion] = await db
+      .select()
+      .from(formulaVersions)
+      .where(eq(formulaVersions.formulaId, id))
+      .orderBy(desc(formulaVersions.versionNumber))
+      .limit(1);
+
+    const newVersionNumber = (currentVersion?.versionNumber ?? 0) + 1;
+
+    const [version] = await db
+      .insert(formulaVersions)
+      .values({
+        formulaId: id,
+        versionNumber: newVersionNumber,
+        notes: "Actualización de composición",
+      })
+      .returning();
+
+    await db.insert(formulaIngredients).values(
+      input.lines.map((line, i) => ({
+        formulaVersionId: version.id,
+        ingredientId: line.ingredientId,
+        phase: line.phase,
+        percentage: String(line.percentage),
+        functionInFormula: line.functionInFormula,
+        sortOrder: i,
+      })),
+    );
+  }
+
+  return (await loadFormulaWithLines(id)) ?? null;
+}
+
+export async function dbDeleteFormula(id: string): Promise<boolean> {
+  const db = getDb();
+  await db.delete(formulas).where(eq(formulas.id, id));
+  return true;
+}
+
+export function isFormulasDbAvailable(): boolean {
+  return isDatabaseConfigured();
+}

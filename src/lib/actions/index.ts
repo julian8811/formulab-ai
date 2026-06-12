@@ -18,6 +18,17 @@ import {
 } from "@/lib/costs/calculator";
 import { suggestReformulation } from "@/lib/reformulation/suggester";
 import { seedRegulatoryProfiles, dogProductTemplates } from "@/data/seed";
+import { humanProductTemplates } from "@/data/seed/human-templates";
+import { getCurrentUser } from "@/lib/auth/session";
+import {
+  type StoredFormula,
+  dbGetFormulas,
+  dbGetFormulaById,
+  dbCreateFormula,
+  dbUpdateFormula,
+  dbDeleteFormula,
+  isFormulasDbAvailable,
+} from "@/lib/data/formulas-repository";
 import type {
   ProductType,
   TargetAudience,
@@ -26,31 +37,13 @@ import type {
   Market,
 } from "@/types";
 
-export interface StoredFormula {
-  id: string;
-  name: string;
-  description?: string;
-  productType: ProductType;
-  targetAudience: TargetAudience;
-  productFormat: ProductFormat;
-  positioning: Positioning[];
-  targetPh?: number;
-  claims: string[];
-  market: Market;
-  lines: Array<{
-    ingredientId: string;
-    phase: string;
-    percentage: number;
-    functionInFormula?: string;
-  }>;
-  createdAt: string;
-  updatedAt: string;
-}
+export type { StoredFormula };
 
 const formulasStore: StoredFormula[] = [];
 let demoSeeded = false;
 
 async function ensureDemoFormula() {
+  if (isFormulasDbAvailable()) return;
   if (!demoSeeded && formulasStore.length === 0) {
     demoSeeded = true;
     await createFromTemplate(0);
@@ -121,11 +114,27 @@ async function buildFormulaLines(
 }
 
 export async function getFormulas(): Promise<StoredFormula[]> {
+  if (isFormulasDbAvailable()) {
+    try {
+      const rows = await dbGetFormulas();
+      if (rows.length > 0) return rows;
+    } catch {
+      // fallback
+    }
+  }
   await ensureDemoFormula();
   return formulasStore;
 }
 
 export async function getFormulaById(id: string): Promise<StoredFormula | undefined> {
+  if (isFormulasDbAvailable()) {
+    try {
+      const row = await dbGetFormulaById(id);
+      if (row) return row;
+    } catch {
+      // fallback
+    }
+  }
   return formulasStore.find((f) => f.id === id);
 }
 
@@ -133,11 +142,26 @@ export async function createFormula(
   input: z.infer<typeof formulaSchema>,
 ): Promise<StoredFormula> {
   const data = formulaSchema.parse(input);
+  const user = await getCurrentUser();
+
+  if (isFormulasDbAvailable()) {
+    try {
+      return await dbCreateFormula({
+        ...data,
+        positioning: data.positioning as Positioning[],
+        userId: user?.id,
+      });
+    } catch {
+      // fallback
+    }
+  }
+
   const now = new Date().toISOString();
   const formula: StoredFormula = {
     id: `formula-${Date.now()}`,
     ...data,
     positioning: data.positioning as Positioning[],
+    versionNumber: 1,
     createdAt: now,
     updatedAt: now,
   };
@@ -149,6 +173,18 @@ export async function updateFormula(
   id: string,
   input: Partial<z.infer<typeof formulaSchema>>,
 ): Promise<StoredFormula | null> {
+  if (isFormulasDbAvailable()) {
+    try {
+      const updated = await dbUpdateFormula(id, {
+        ...input,
+        positioning: input.positioning as Positioning[] | undefined,
+      });
+      if (updated) return updated;
+    } catch {
+      // fallback
+    }
+  }
+
   const idx = formulasStore.findIndex((f) => f.id === id);
   if (idx < 0) return null;
 
@@ -163,6 +199,13 @@ export async function updateFormula(
 }
 
 export async function deleteFormula(id: string): Promise<boolean> {
+  if (isFormulasDbAvailable()) {
+    try {
+      return await dbDeleteFormula(id);
+    } catch {
+      // fallback
+    }
+  }
   const idx = formulasStore.findIndex((f) => f.id === id);
   if (idx < 0) return false;
   formulasStore.splice(idx, 1);
@@ -246,11 +289,12 @@ export async function getRegulatoryProfiles() {
 }
 
 export async function getProductTemplates() {
-  return dogProductTemplates;
+  return [...dogProductTemplates, ...humanProductTemplates];
 }
 
 export async function createFromTemplate(templateIndex: number) {
-  const template = dogProductTemplates[templateIndex];
+  const allTemplates = [...dogProductTemplates, ...humanProductTemplates];
+  const template = allTemplates[templateIndex];
   if (!template) throw new Error("Plantilla no encontrada");
 
   return createFormula({

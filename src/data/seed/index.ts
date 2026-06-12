@@ -3,6 +3,7 @@ export type { SeedIngredient, SeedIncompatibility, SeedClaimRule } from "./types
 import type { SeedClaimRule, SeedIngredient, SeedIncompatibility } from "./types";
 import { extendedIngredients } from "./ingredients-extended";
 import { extendedIncompatibilities } from "./ingredients-extended";
+import { batch2Ingredients } from "./ingredients-batch2";
 
 export const seedIngredients: SeedIngredient[] = [
   {
@@ -795,6 +796,7 @@ export const seedIngredients: SeedIngredient[] = [
     naturalOriginIndex: 0,
   },
   ...extendedIngredients,
+  ...batch2Ingredients,
 ];
 
 export const seedIncompatibilities: SeedIncompatibility[] = [
