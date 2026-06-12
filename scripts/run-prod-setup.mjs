@@ -14,3 +14,4 @@ const res = await fetch(URL, {
 
 const body = await res.text();
 console.log(res.status, body);
+if (!res.ok) process.exit(1);
