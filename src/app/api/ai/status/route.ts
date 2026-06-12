@@ -20,7 +20,7 @@ export async function GET() {
     await generateText({
       model: getChatModel(),
       prompt: "Responde solo: OK",
-      maxOutputTokens: 5,
+      maxOutputTokens: 16,
     });
 
     return NextResponse.json({
