@@ -3,7 +3,12 @@ import {
   createRegulatoryTools,
   AGENT_PROMPTS,
 } from "@/lib/ai/tools";
-import { getAiBillingHint, generateAiText, isAiConfigured } from "@/lib/ai/config";
+import {
+  getAiBillingHint,
+  generateAiText,
+  getFreeSetupHint,
+  isAiConfigured,
+} from "@/lib/ai/config";
 import type { AgentType } from "@/types";
 
 export async function runAgent(
@@ -24,7 +29,7 @@ export async function runAgent(
 
   if (!isAiConfigured()) {
     return {
-      text: getStubResponse(agentType, userMessage),
+      text: `${getFreeSetupHint()}\n\n---\n\n${getStubResponse(agentType, userMessage)}`,
       usedTools: false,
       mode: "demo",
     };
@@ -48,8 +53,8 @@ export async function runAgent(
 
     return {
       text: billingHint
-        ? `**IA no disponible (billing)**\n\n${billingHint}\n\n---\n\n${getStubResponse(agentType, userMessage)}`
-        : `**Error al consultar IA:** ${detail}\n\n---\n\n${getStubResponse(agentType, userMessage)}`,
+        ? `**IA no disponible**\n\n${billingHint}\n\n${getFreeSetupHint()}\n\n---\n\n${getStubResponse(agentType, userMessage)}`
+        : `**Error al consultar IA:** ${detail}\n\n${getFreeSetupHint()}\n\n---\n\n${getStubResponse(agentType, userMessage)}`,
       usedTools: false,
       mode: "demo",
     };

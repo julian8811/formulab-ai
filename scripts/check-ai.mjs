@@ -19,7 +19,7 @@ async function main() {
     process.exit(0);
   }
 
-  console.log("\n✗ IA en modo demo — revisa billing OpenAI o Vercel AI Gateway");
+  console.log("\n✗ IA en modo demo — configura un proveedor gratis: npm run ai:setup");
   process.exit(1);
 }
 

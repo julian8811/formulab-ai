@@ -3,6 +3,7 @@ import {
   generateAiText,
   getAiAuthMethod,
   getAvailableAiMethods,
+  getFreeSetupHint,
   isAiConfigured,
 } from "@/lib/ai/config";
 
@@ -18,7 +19,8 @@ export async function GET() {
       mode: "demo",
       authMethod,
       availableMethods,
-      message: "Sin credenciales de IA configuradas.",
+      message: "Sin proveedor gratuito configurado.",
+      setup: getFreeSetupHint(),
     });
   }
 
@@ -33,7 +35,7 @@ export async function GET() {
       mode: "live",
       authMethod: usedMethod,
       availableMethods,
-      message: "IA operativa.",
+      message: "IA operativa (plan gratuito).",
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Error desconocido";
@@ -44,6 +46,7 @@ export async function GET() {
       authMethod,
       availableMethods,
       message,
+      setup: getFreeSetupHint(),
     });
   }
 }

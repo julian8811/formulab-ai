@@ -97,8 +97,8 @@ export default function AIPage() {
         )}
 
         <p className="text-xs text-muted-foreground">
-          La IA trabaja con bases de datos verificables. En producción usa Vercel AI
-          Gateway (OIDC automático) o OpenAI directo. Estado:{" "}
+          IA 100% gratis (GitHub Models, Gemini o Groq). Sin tarjeta. Configura con{" "}
+          <code className="text-xs">npm run ai:setup</code>. Estado:{" "}
           <a href="/api/ai/status" className="underline" target="_blank" rel="noreferrer">
             /api/ai/status
           </a>

@@ -23,19 +23,19 @@ Copiloto técnico de formulación cosmética para **perros y humanos**. Lleva un
 - **Estabilidad y microbiología** — protocolos y alertas de challenge test
 - **Costos y escalado** — escenarios prototipo / piloto / comercial
 - **Documentación PDF** — fórmula maestra, procedimiento, INCI, checklist
-- **Asistente IA** — agentes formulador, regulatorio, estabilidad, costos (Vercel AI Gateway)
+- **Asistente IA** — agentes formulador, regulatorio, estabilidad, costos (IA gratis: GitHub Models / Gemini / Groq)
 
 ## Stack
 
-| Capa               | Tecnología                           |
-| ------------------ | ------------------------------------ |
-| Frontend / Backend | Next.js 16 (App Router) + TypeScript |
-| UI                 | Tailwind CSS + shadcn/ui             |
-| Base de datos      | Supabase (Postgres + Auth + Storage) |
-| ORM                | Drizzle ORM                          |
-| IA                 | Vercel AI SDK + AI Gateway           |
-| Tests              | Vitest                               |
-| Deploy             | Vercel                               |
+| Capa               | Tecnología                            |
+| ------------------ | ------------------------------------- |
+| Frontend / Backend | Next.js 16 (App Router) + TypeScript  |
+| UI                 | Tailwind CSS + shadcn/ui              |
+| Base de datos      | Supabase (Postgres + Auth + Storage)  |
+| ORM                | Drizzle ORM                           |
+| IA                 | Vercel AI SDK + proveedores gratuitos |
+| Tests              | Vitest                                |
+| Deploy             | Vercel                                |
 
 ## Estructura del repositorio
 
@@ -83,16 +83,17 @@ Si `DATABASE_URL` no está configurada, la app usa datos sembrados en memoria. T
 
 ## Variables de entorno
 
-| Variable                        | Descripción                           | Requerida   |
-| ------------------------------- | ------------------------------------- | ----------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | URL del proyecto Supabase             | Producción  |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave anon/public                     | Producción  |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Clave service role (solo servidor)    | Producción  |
-| `DATABASE_URL`                  | Postgres (pooler `:6543` en Vercel)   | Producción  |
-| `NEXT_PUBLIC_APP_URL`           | URL pública de la app                 | Producción  |
-| `OPENAI_API_KEY`                | OpenAI directo (agentes + embeddings) | Opcional    |
-| `AI_GATEWAY_API_KEY`            | Vercel AI Gateway (alternativa)       | Opcional    |
-| `SUPABASE_ACCESS_TOKEN`         | PAT para scripts de migración         | Solo dev/CI |
+| Variable                        | Descripción                         | Requerida   |
+| ------------------------------- | ----------------------------------- | ----------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | URL del proyecto Supabase           | Producción  |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave anon/public                   | Producción  |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Clave service role (solo servidor)  | Producción  |
+| `DATABASE_URL`                  | Postgres (pooler `:6543` en Vercel) | Producción  |
+| `NEXT_PUBLIC_APP_URL`           | URL pública de la app               | Producción  |
+| `GITHUB_TOKEN`                  | GitHub Models (gratis, sin tarjeta) | IA (1 de 3) |
+| `GEMINI_API_KEY`                | Google Gemini AI Studio (gratis)    | IA (1 de 3) |
+| `GROQ_API_KEY`                  | Groq (gratis, Llama 3.3)            | IA (1 de 3) |
+| `SUPABASE_ACCESS_TOKEN`         | PAT para scripts de migración       | Solo dev/CI |
 
 Ver [`.env.example`](.env.example) para la plantilla completa.
 

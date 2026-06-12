@@ -1,11 +1,17 @@
 import { generateText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createGroq } from "@ai-sdk/groq";
 import type { ToolSet } from "ai";
 
-export const AI_CHAT_MODEL = "openai/gpt-4o-mini";
-export const AI_EMBEDDING_MODEL = "openai/text-embedding-3-small";
-
-export type AiAuthMethod = "ai-gateway-key" | "vercel-oidc" | "openai-direct" | "none";
+export type AiAuthMethod =
+  | "github-models"
+  | "gemini"
+  | "groq"
+  | "openai-direct"
+  | "ai-gateway-key"
+  | "vercel-oidc"
+  | "none";
 
 type GenerateAiTextOptions = {
   system?: string;
@@ -14,21 +20,21 @@ type GenerateAiTextOptions = {
   maxOutputTokens?: number;
 };
 
+const GITHUB_MODELS_BASE = "https://models.github.ai/inference";
+const GITHUB_MODEL = "openai/gpt-4.1-mini";
+
+/** Proveedores 100% gratis — sin tarjeta de crédito. */
 export function getAvailableAiMethods(): AiAuthMethod[] {
   const methods: AiAuthMethod[] = [];
 
-  // En Vercel el AI SDK usa OIDC automáticamente con model strings provider/model
-  if (process.env.VERCEL === "1") {
-    methods.push("vercel-oidc");
-  } else if (process.env.VERCEL_OIDC_TOKEN) {
-    methods.push("vercel-oidc");
+  if (process.env.GITHUB_TOKEN || process.env.GH_TOKEN) {
+    methods.push("github-models");
   }
-
-  if (process.env.OPENAI_API_KEY) {
-    methods.push("openai-direct");
+  if (process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY) {
+    methods.push("gemini");
   }
-  if (process.env.AI_GATEWAY_API_KEY) {
-    methods.push("ai-gateway-key");
+  if (process.env.GROQ_API_KEY) {
+    methods.push("groq");
   }
 
   return methods;
@@ -42,13 +48,38 @@ export function isAiConfigured(): boolean {
   return getAiAuthMethod() !== "none";
 }
 
-function getChatModelFor(method: AiAuthMethod) {
-  if (method === "openai-direct") {
-    const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    return openai("gpt-4o-mini");
-  }
+function getGithubToken() {
+  return process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN;
+}
 
-  return AI_CHAT_MODEL;
+function getGeminiKey() {
+  return process.env.GOOGLE_GENERATIVE_AI_API_KEY ?? process.env.GEMINI_API_KEY;
+}
+
+function getChatModelFor(method: AiAuthMethod) {
+  switch (method) {
+    case "github-models": {
+      const github = createOpenAI({
+        apiKey: getGithubToken(),
+        baseURL: GITHUB_MODELS_BASE,
+        headers: {
+          Accept: "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+      });
+      return github(GITHUB_MODEL);
+    }
+    case "gemini": {
+      const google = createGoogleGenerativeAI({ apiKey: getGeminiKey() });
+      return google("gemini-2.0-flash");
+    }
+    case "groq": {
+      const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
+      return groq("llama-3.3-70b-versatile");
+    }
+    default:
+      throw new Error(`Proveedor no soportado: ${method}`);
+  }
 }
 
 export function getChatModel() {
@@ -57,17 +88,16 @@ export function getChatModel() {
 
 export function getEmbeddingModel() {
   const method = getAiAuthMethod();
-  if (method === "openai-direct") {
-    const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    return openai.embedding("text-embedding-3-small");
+  if (method === "gemini") {
+    const google = createGoogleGenerativeAI({ apiKey: getGeminiKey() });
+    return google.textEmbeddingModel("text-embedding-004");
   }
-
-  return AI_EMBEDDING_MODEL;
+  return undefined;
 }
 
 function isFailoverError(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
-  return /insufficient_quota|exceeded your current quota|credit card|customer_verification_required|insufficient funds/i.test(
+  return /401|403|unauthorized|invalid.*key|insufficient_quota|rate.?limit|credit card|customer_verification|insufficient funds/i.test(
     message,
   );
 }
@@ -78,7 +108,7 @@ export async function generateAiText(options: GenerateAiTextOptions): Promise<{
 }> {
   const methods = getAvailableAiMethods();
   if (methods.length === 0) {
-    throw new Error("Sin credenciales de IA configuradas.");
+    throw new Error("Sin proveedor de IA gratuito configurado.");
   }
 
   let lastError: unknown;
@@ -104,17 +134,24 @@ export async function generateAiText(options: GenerateAiTextOptions): Promise<{
 export function getAiBillingHint(error: unknown): string | null {
   const message = error instanceof Error ? error.message : String(error);
 
-  if (/insufficient_quota|exceeded your current quota/i.test(message)) {
-    return "Tu cuenta de OpenAI no tiene crédito activo. Activa billing en platform.openai.com/account/billing.";
+  if (/401|403|unauthorized/i.test(message)) {
+    return "Token inválido o sin permiso `Models: Read`. Crea un PAT en github.com/settings/tokens?scopes=models o usa Gemini/Groq gratis.";
   }
 
-  if (/credit card|customer_verification_required/i.test(message)) {
-    return "Vercel AI Gateway requiere una tarjeta en vercel.com → AI Gateway → Billing (incluye créditos gratis).";
-  }
-
-  if (/insufficient funds/i.test(message)) {
-    return "Saldo de Vercel AI Gateway agotado. Recarga créditos o usa OPENAI_API_KEY con billing activo.";
+  if (/rate.?limit/i.test(message)) {
+    return "Límite de uso gratuito alcanzado. Espera unos minutos o añade un segundo proveedor (Gemini/Groq).";
   }
 
   return null;
+}
+
+export function getFreeSetupHint(): string {
+  return `**IA gratis — elige uno (sin tarjeta):**
+
+1. **GitHub Models** (recomendado): PAT con permiso *Models → Read* → \`GITHUB_TOKEN\`
+   https://github.com/settings/personal-access-tokens/new
+
+2. **Google Gemini**: key gratis en https://aistudio.google.com/app/apikey → \`GEMINI_API_KEY\`
+
+3. **Groq**: key gratis en https://console.groq.com/keys → \`GROQ_API_KEY\``;
 }

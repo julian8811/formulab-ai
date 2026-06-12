@@ -32,13 +32,23 @@ Configura en **Project → Settings → Environment Variables** (Production, Pre
 - `DATABASE_URL` — usar pooler `:6543` para serverless
 - `NEXT_PUBLIC_APP_URL` — URL de producción de Vercel
 
-Opcional (IA):
+### IA gratis (sin tarjeta)
 
-- `OPENAI_API_KEY` — OpenAI directo (recomendado; activa billing en OpenAI)
-- `AI_GATEWAY_API_KEY` — Vercel AI Gateway (alternativa; requiere tarjeta en Vercel)
-- `VERCEL_OIDC_TOKEN` — automático en deploys Vercel (`vercel env pull` en local)
+```bash
+npm run ai:setup    # abre GitHub Models token (recomendado)
+npm run ai:check    # verifica local
+npm run ai:check:prod
+```
 
-Diagnóstico: `GET /api/ai/status` en la app desplegada.
+Opciones (elige **una**):
+
+| Proveedor         | Cómo obtener key                                                         | Límites                     |
+| ----------------- | ------------------------------------------------------------------------ | --------------------------- |
+| **GitHub Models** | `npm run ai:setup` → Generate token                                      | ~150 req/día (gpt-4.1-mini) |
+| **Google Gemini** | [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) | ~1500 req/día               |
+| **Groq**          | [console.groq.com/keys](https://console.groq.com/keys)                   | RPM limitado                |
+
+Variable en Vercel: `GITHUB_TOKEN`, `GEMINI_API_KEY` o `GROQ_API_KEY`.
 
 ### CLI
 

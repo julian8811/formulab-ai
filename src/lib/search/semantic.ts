@@ -41,8 +41,11 @@ export async function generateEmbedding(text: string): Promise<number[] | null> 
   }
 
   try {
+    const model = getEmbeddingModel();
+    if (!model) return null;
+
     const result = await embed({
-      model: getEmbeddingModel(),
+      model,
       value: text,
     });
 
