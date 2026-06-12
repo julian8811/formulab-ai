@@ -1,10 +1,9 @@
-import { generateText } from "ai";
 import {
   createFormulatorTools,
   createRegulatoryTools,
   AGENT_PROMPTS,
 } from "@/lib/ai/tools";
-import { getAiBillingHint, getChatModel, isAiConfigured } from "@/lib/ai/config";
+import { getAiBillingHint, generateAiText, isAiConfigured } from "@/lib/ai/config";
 import type { AgentType } from "@/types";
 
 export async function runAgent(
@@ -32,8 +31,7 @@ export async function runAgent(
   }
 
   try {
-    const result = await generateText({
-      model: getChatModel(),
+    const { result } = await generateAiText({
       system: systemPrompt,
       prompt: userMessage,
       tools,
