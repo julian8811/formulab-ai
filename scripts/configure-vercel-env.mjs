@@ -18,16 +18,21 @@ const vars = {
 
 console.log("Configurando Vercel production env...");
 
+import { writeFileSync, unlinkSync } from "fs";
+
 for (const [key, value] of Object.entries(vars)) {
   try {
     execSync(`npx vercel env rm ${key} production --yes`, { stdio: "pipe" });
   } catch {
     // may not exist
   }
-  execSync(`echo ${value} | npx vercel env add ${key} production`, {
+  const tmp = `.env-${key}.tmp`;
+  writeFileSync(tmp, value, "utf8");
+  execSync(`npx vercel env add ${key} production < ${tmp}`, {
     stdio: "inherit",
     shell: true,
   });
+  unlinkSync(tmp);
   console.log(`OK: ${key}`);
 }
 

@@ -60,8 +60,9 @@ async function runSql(
 }
 
 export async function POST(request: NextRequest) {
-  const secret = request.headers.get("x-setup-secret");
-  if (!secret || secret !== process.env.SETUP_SECRET) {
+  const secret = request.headers.get("x-setup-secret")?.trim();
+  const expected = process.env.SETUP_SECRET?.trim();
+  if (!secret || !expected || secret !== expected) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
