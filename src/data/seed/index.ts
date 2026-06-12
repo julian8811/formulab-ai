@@ -1,57 +1,8 @@
-import type { DogCompatibility, IonicCharge, Origin, RiskLevel, Species } from "@/types";
+export type { SeedIngredient, SeedIncompatibility, SeedClaimRule } from "./types";
 
-export interface SeedIngredient {
-  id: string;
-  commercialName: string;
-  inciName: string;
-  commonName: string;
-  function: string;
-  supplier: string;
-  origin: Origin;
-  ionicCharge: IonicCharge;
-  minPercentage: number;
-  maxPercentage: number;
-  phStabilityMin?: number;
-  phStabilityMax?: number;
-  solubility: string;
-  restrictions?: string;
-  allergens: string[];
-  biodegradable: boolean;
-  certifications: string[];
-  approvedForHuman: boolean;
-  recommendedUse: string;
-  dogCompatibility: DogCompatibility;
-  lickRisk: RiskLevel;
-  fragranceRisk: RiskLevel;
-  heatSensitive: boolean;
-  costPerKg: number;
-  naturalOriginIndex: number;
-}
-
-export interface SeedIncompatibility {
-  id: string;
-  ruleKey: string;
-  ingredientAId?: string;
-  ingredientBId?: string;
-  ionicChargeA?: IonicCharge;
-  ionicChargeB?: IonicCharge;
-  category: string;
-  severity: RiskLevel;
-  message: string;
-  suggestion: string;
-}
-
-export interface SeedClaimRule {
-  id: string;
-  pattern: string;
-  riskLevel: RiskLevel;
-  reason: string;
-  safeAlternative: string;
-  species: Species;
-  requiresEvidence: boolean;
-  evidenceQuestion?: string;
-  category: string;
-}
+import type { SeedClaimRule, SeedIngredient, SeedIncompatibility } from "./types";
+import { extendedIngredients } from "./ingredients-extended";
+import { extendedIncompatibilities } from "./ingredients-extended";
 
 export const seedIngredients: SeedIngredient[] = [
   {
@@ -843,6 +794,7 @@ export const seedIngredients: SeedIngredient[] = [
     costPerKg: 9.0,
     naturalOriginIndex: 0,
   },
+  ...extendedIngredients,
 ];
 
 export const seedIncompatibilities: SeedIncompatibility[] = [
@@ -924,6 +876,7 @@ export const seedIncompatibilities: SeedIncompatibility[] = [
     message: "Goma xantana (aniónica) puede perder viscosidad con catiónicos.",
     suggestion: "Ajustar orden de adición o usar espesante compatible.",
   },
+  ...extendedIncompatibilities,
 ];
 
 export const seedClaimRules: SeedClaimRule[] = [
