@@ -13,7 +13,16 @@ Estado: esquema aplicado, RLS activo, datos sembrados.
 
 ## Vercel
 
-### Variables requeridas
+**Estado:** desplegado en producción.
+
+| Campo     | Valor                                                                          |
+| --------- | ------------------------------------------------------------------------------ |
+| URL       | https://formulab-ai.vercel.app                                                 |
+| Proyecto  | `montoya8811-1146s-projects/formulab-ai`                                       |
+| Dashboard | https://vercel.com/montoya8811-1146s-projects/formulab-ai                      |
+| Repo Git  | https://github.com/julian8811/formulab-ai (deploy automático en push a `main`) |
+
+Variables de entorno ya configuradas en Production, Preview y Development.
 
 Configura en **Project → Settings → Environment Variables** (Production, Preview, Development):
 

@@ -8,7 +8,9 @@ Copiloto técnico de formulación cosmética para **perros y humanos**. Lleva un
 
 | Entorno    | URL                                                                                   |
 | ---------- | ------------------------------------------------------------------------------------- |
-| Producción | _Se actualiza tras el deploy en Vercel_                                               |
+| Producción | [https://formulab-ai.vercel.app](https://formulab-ai.vercel.app)                      |
+| GitHub     | [julian8811/formulab-ai](https://github.com/julian8811/formulab-ai)                   |
+| Vercel     | [Panel del proyecto](https://vercel.com/montoya8811-1146s-projects/formulab-ai)       |
 | Supabase   | [Dashboard del proyecto](https://supabase.com/dashboard/project/qndtqqrmupalxwhjbxuf) |
 
 ## Características
