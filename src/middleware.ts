@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/api/")) {
-    if (pathname === "/api/ai/status") {
+    if (pathname === "/api/ai/status" || pathname === "/api/admin/setup") {
       return NextResponse.next();
     }
   }

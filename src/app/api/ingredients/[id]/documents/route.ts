@@ -4,6 +4,7 @@ import {
   getIngredientDocuments,
   saveIngredientDocument,
 } from "@/lib/data/ingredient-documents";
+import { isProduction } from "@/lib/auth/guard";
 import type { DocumentType } from "@/types";
 
 const BUCKET = "ingredient-documents";
@@ -53,7 +54,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       });
 
       if (error) {
-        // Fallback: guardar referencia local si el bucket no existe
+        if (isProduction()) {
+          return NextResponse.json(
+            { error: `Storage: ${error.message}. Verifica bucket ingredient-documents.` },
+            { status: 503 },
+          );
+        }
         savedPath = `local://${storagePath}`;
       }
     } else {

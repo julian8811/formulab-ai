@@ -4,17 +4,19 @@ ALTER TABLE ingredient_documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE members ENABLE ROW LEVEL SECURITY;
 
--- Ingredient documents: authenticated users manage uploads
+DROP POLICY IF EXISTS "ingredient_documents_select" ON ingredient_documents;
 CREATE POLICY "ingredient_documents_select" ON ingredient_documents
   FOR SELECT USING (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "ingredient_documents_insert" ON ingredient_documents;
 CREATE POLICY "ingredient_documents_insert" ON ingredient_documents
   FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "ingredient_documents_delete" ON ingredient_documents;
 CREATE POLICY "ingredient_documents_delete" ON ingredient_documents
   FOR DELETE USING (auth.role() = 'authenticated');
 
--- Formula versions: insert when user owns parent formula
+DROP POLICY IF EXISTS "formula_versions_insert" ON formula_versions;
 CREATE POLICY "formula_versions_insert" ON formula_versions
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -24,7 +26,7 @@ CREATE POLICY "formula_versions_insert" ON formula_versions
     )
   );
 
--- Formula ingredients: insert when user owns parent formula via version
+DROP POLICY IF EXISTS "formula_ingredients_insert" ON formula_ingredients;
 CREATE POLICY "formula_ingredients_insert" ON formula_ingredients
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -35,7 +37,7 @@ CREATE POLICY "formula_ingredients_insert" ON formula_ingredients
     )
   );
 
--- Organizations: members can read their org
+DROP POLICY IF EXISTS "organizations_select" ON organizations;
 CREATE POLICY "organizations_select" ON organizations
   FOR SELECT USING (
     EXISTS (
@@ -45,6 +47,6 @@ CREATE POLICY "organizations_select" ON organizations
     )
   );
 
--- Members: users see their own memberships
+DROP POLICY IF EXISTS "members_select" ON members;
 CREATE POLICY "members_select" ON members
   FOR SELECT USING (user_id = auth.uid());
