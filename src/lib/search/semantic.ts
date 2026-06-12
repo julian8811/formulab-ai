@@ -8,7 +8,11 @@ import { isDatabaseConfigured, getDb } from "@/db";
 import { ingredients } from "@/db/schema";
 import { sql } from "drizzle-orm";
 import { searchIngredients } from "@/lib/data/repository";
-import { getEmbeddingModel, isAiConfigured } from "@/lib/ai/config";
+import {
+  generatePseudoEmbedding,
+  getEmbeddingModel,
+  hasRealEmbeddingModel,
+} from "@/lib/ai/config";
 
 export async function semanticSearchIngredients(
   query: string,
@@ -36,13 +40,13 @@ export async function semanticSearchIngredients(
 }
 
 export async function generateEmbedding(text: string): Promise<number[] | null> {
-  if (!isAiConfigured()) {
-    return null;
+  if (!hasRealEmbeddingModel()) {
+    return generatePseudoEmbedding(text);
   }
 
   try {
     const model = getEmbeddingModel();
-    if (!model) return null;
+    if (!model) return generatePseudoEmbedding(text);
 
     const result = await embed({
       model,
@@ -51,6 +55,6 @@ export async function generateEmbedding(text: string): Promise<number[] | null> 
 
     return result.embedding;
   } catch {
-    return null;
+    return generatePseudoEmbedding(text);
   }
 }

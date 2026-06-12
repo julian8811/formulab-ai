@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { AppHeader } from "@/components/layout/sidebar";
 import { ValidationAlertsList } from "@/components/validation/alerts-list";
 import { ScoreBar, RiskBadge } from "@/components/shared/status-badge";
@@ -16,22 +15,35 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getFormulaAnalysis, getAllIngredients } from "@/lib/actions";
-import { FileText, RefreshCw } from "lucide-react";
+import {
+  dbListFormulaVersions,
+  isFormulasDbAvailable,
+} from "@/lib/data/formulas-repository";
+import { FileText, RefreshCw, Pencil } from "lucide-react";
 import { ReformulationPanel } from "@/components/formulas/reformulation-panel";
+import { VersionHistory } from "@/components/formulas/version-history";
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ version?: string }>;
 }
 
-export default async function FormulaDetailPage({ params }: PageProps) {
+export default async function FormulaDetailPage({ params, searchParams }: PageProps) {
   const { id } = await params;
+  const query = await searchParams;
+  const versionNumber = query.version ? parseInt(query.version, 10) : undefined;
 
   let analysis;
   try {
-    analysis = await getFormulaAnalysis(id);
+    analysis = await getFormulaAnalysis(
+      id,
+      versionNumber != null && !Number.isNaN(versionNumber) ? versionNumber : undefined,
+    );
   } catch {
     notFound();
   }
+
+  const versions = isFormulasDbAvailable() ? await dbListFormulaVersions(id) : [];
 
   const { formula, alerts, score, stability, microbiology, costs, claimResults } =
     analysis;
@@ -54,6 +66,9 @@ export default async function FormulaDetailPage({ params }: PageProps) {
             <Badge variant="outline">pH {formula.targetPh}</Badge>
           </div>
           <div className="flex gap-2">
+            <LinkButton href={`/formulas/${id}/edit`} variant="outline" size="sm">
+              <Pencil className="mr-2 h-4 w-4" /> Editar
+            </LinkButton>
             <LinkButton href={`/documents?formula=${id}`} variant="outline" size="sm">
               <FileText className="mr-2 h-4 w-4" /> Documentos
             </LinkButton>
@@ -62,6 +77,14 @@ export default async function FormulaDetailPage({ params }: PageProps) {
             </LinkButton>
           </div>
         </div>
+
+        {versions.length > 0 && (
+          <VersionHistory
+            formulaId={id}
+            versions={versions}
+            currentVersionNumber={formula.versionNumber}
+          />
+        )}
 
         <div className="grid gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-2">

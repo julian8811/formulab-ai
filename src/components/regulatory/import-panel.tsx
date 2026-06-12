@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, Database } from "lucide-react";
 
 export function RegulatoryImportPanel() {
-  const [loading, setLoading] = useState<"cosing" | "ifra" | null>(null);
+  const [loading, setLoading] = useState<"cosing" | "cosing-full" | "ifra" | null>(null);
   const [result, setResult] = useState<string | null>(null);
 
-  async function handleImport(source: "cosing" | "ifra") {
+  async function handleImport(source: "cosing" | "cosing-full" | "ifra") {
     setLoading(source);
     setResult(null);
     try {
@@ -52,6 +52,16 @@ export function RegulatoryImportPanel() {
           >
             <Download className="mr-2 h-4 w-4" />
             {loading === "cosing" ? "Importando CosIng..." : "Importar CosIng (muestra)"}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => handleImport("cosing-full")}
+            disabled={loading !== null}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            {loading === "cosing-full"
+              ? "Importando CosIng ampliado..."
+              : "Importar CosIng ampliado"}
           </Button>
           <Button
             variant="outline"

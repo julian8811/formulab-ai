@@ -62,7 +62,7 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{templates.length}</div>
-              <p className="text-xs text-muted-foreground">Grooming canino</p>
+              <p className="text-xs text-muted-foreground">Canino + humano</p>
             </CardContent>
           </Card>
           <Card>
@@ -80,9 +80,9 @@ export default async function DashboardPage() {
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Plantillas de grooming canino</CardTitle>
+              <CardTitle>Plantillas canino + humano</CardTitle>
               <CardDescription>
-                Inicia con una fórmula base validada para perros
+                Inicia con una fórmula base validada para perros o humanos
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">

@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -19,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search } from "lucide-react";
+import { SemanticSearchBar } from "@/components/ingredients/semantic-search-bar";
 import type { SeedIngredient } from "@/data/seed";
 import type { DogCompatibility, Origin } from "@/types";
 
@@ -57,15 +56,7 @@ export function IngredientsTable({ ingredients }: IngredientsTableProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar INCI, nombre o función..."
-            className="pl-9"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
+        <SemanticSearchBar onQueryChange={setQuery} />
         <Select value={functionFilter} onValueChange={(v) => v && setFunctionFilter(v)}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Función" />

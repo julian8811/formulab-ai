@@ -1,6 +1,13 @@
 import { AppSidebar } from "@/components/layout/sidebar";
+import { requireAuth } from "@/lib/auth/guard";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  await requireAuth();
+
   return (
     <div className="flex min-h-screen">
       <AppSidebar />

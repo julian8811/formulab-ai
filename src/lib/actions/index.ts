@@ -20,22 +20,20 @@ import { suggestReformulation } from "@/lib/reformulation/suggester";
 import { seedRegulatoryProfiles, dogProductTemplates } from "@/data/seed";
 import { humanProductTemplates } from "@/data/seed/human-templates";
 import { getCurrentUser } from "@/lib/auth/session";
+import { isDemoMode, isProduction } from "@/lib/auth/guard";
 import {
   type StoredFormula,
   dbGetFormulas,
   dbGetFormulaById,
+  dbGetFormulaByVersion,
   dbCreateFormula,
   dbUpdateFormula,
   dbDeleteFormula,
+  dbGetFormulaVersionId,
   isFormulasDbAvailable,
 } from "@/lib/data/formulas-repository";
-import type {
-  ProductType,
-  TargetAudience,
-  ProductFormat,
-  Positioning,
-  Market,
-} from "@/types";
+import { saveFormulaAnalysis, isScoresDbAvailable } from "@/lib/data/scores-repository";
+import type { Positioning } from "@/types";
 
 export type { StoredFormula };
 
@@ -43,11 +41,15 @@ const formulasStore: StoredFormula[] = [];
 let demoSeeded = false;
 
 async function ensureDemoFormula() {
-  if (isFormulasDbAvailable()) return;
+  if (!isDemoMode()) return;
   if (!demoSeeded && formulasStore.length === 0) {
     demoSeeded = true;
     await createFromTemplate(0);
   }
+}
+
+function shouldUseInMemoryStore(): boolean {
+  return isDemoMode();
 }
 
 const formulaSchema = z.object({
@@ -117,11 +119,12 @@ export async function getFormulas(): Promise<StoredFormula[]> {
   if (isFormulasDbAvailable()) {
     try {
       const rows = await dbGetFormulas();
-      if (rows.length > 0) return rows;
+      if (rows.length > 0 || !shouldUseInMemoryStore()) return rows;
     } catch {
-      // fallback
+      if (!shouldUseInMemoryStore()) return [];
     }
   }
+  if (!shouldUseInMemoryStore()) return [];
   await ensureDemoFormula();
   return formulasStore;
 }
@@ -130,11 +133,12 @@ export async function getFormulaById(id: string): Promise<StoredFormula | undefi
   if (isFormulasDbAvailable()) {
     try {
       const row = await dbGetFormulaById(id);
-      if (row) return row;
+      if (row || !shouldUseInMemoryStore()) return row;
     } catch {
-      // fallback
+      if (!shouldUseInMemoryStore()) return undefined;
     }
   }
+  if (!shouldUseInMemoryStore()) return undefined;
   return formulasStore.find((f) => f.id === id);
 }
 
@@ -145,15 +149,15 @@ export async function createFormula(
   const user = await getCurrentUser();
 
   if (isFormulasDbAvailable()) {
-    try {
-      return await dbCreateFormula({
-        ...data,
-        positioning: data.positioning as Positioning[],
-        userId: user?.id,
-      });
-    } catch {
-      // fallback
-    }
+    return await dbCreateFormula({
+      ...data,
+      positioning: data.positioning as Positioning[],
+      userId: user?.id,
+    });
+  }
+
+  if (isProduction() && !shouldUseInMemoryStore()) {
+    throw new Error("Base de datos no disponible en producción");
   }
 
   const now = new Date().toISOString();
@@ -174,16 +178,13 @@ export async function updateFormula(
   input: Partial<z.infer<typeof formulaSchema>>,
 ): Promise<StoredFormula | null> {
   if (isFormulasDbAvailable()) {
-    try {
-      const updated = await dbUpdateFormula(id, {
-        ...input,
-        positioning: input.positioning as Positioning[] | undefined,
-      });
-      if (updated) return updated;
-    } catch {
-      // fallback
-    }
+    return await dbUpdateFormula(id, {
+      ...input,
+      positioning: input.positioning as Positioning[] | undefined,
+    });
   }
+
+  if (!shouldUseInMemoryStore()) return null;
 
   const idx = formulasStore.findIndex((f) => f.id === id);
   if (idx < 0) return null;
@@ -200,12 +201,10 @@ export async function updateFormula(
 
 export async function deleteFormula(id: string): Promise<boolean> {
   if (isFormulasDbAvailable()) {
-    try {
-      return await dbDeleteFormula(id);
-    } catch {
-      // fallback
-    }
+    return await dbDeleteFormula(id);
   }
+  if (!shouldUseInMemoryStore()) return false;
+
   const idx = formulasStore.findIndex((f) => f.id === id);
   if (idx < 0) return false;
   formulasStore.splice(idx, 1);
@@ -229,8 +228,14 @@ export async function validateFormulaById(formulaId: string) {
   });
 }
 
-export async function getFormulaAnalysis(formulaId: string) {
-  const formula = await getFormulaById(formulaId);
+export async function getFormulaAnalysis(formulaId: string, versionNumber?: number) {
+  let formula: StoredFormula | undefined;
+  if (versionNumber != null && isFormulasDbAvailable()) {
+    formula = await dbGetFormulaByVersion(formulaId, versionNumber);
+  }
+  if (!formula) {
+    formula = await getFormulaById(formulaId);
+  }
   if (!formula) throw new Error("Fórmula no encontrada");
 
   const lines = await buildFormulaLines(formula.lines);
@@ -264,7 +269,7 @@ export async function getFormulaAnalysis(formulaId: string) {
     formula.targetAudience.startsWith("dog") ? "dog" : "human",
   );
 
-  return {
+  const result = {
     formula,
     alerts,
     score,
@@ -274,6 +279,19 @@ export async function getFormulaAnalysis(formulaId: string) {
     expensive,
     claimResults,
   };
+
+  if (isScoresDbAvailable() && isFormulasDbAvailable()) {
+    try {
+      const versionId = await dbGetFormulaVersionId(formulaId, formula.versionNumber);
+      if (versionId) {
+        await saveFormulaAnalysis(versionId, score, costs);
+      }
+    } catch {
+      // Persistencia opcional; no bloquear análisis
+    }
+  }
+
+  return result;
 }
 
 export async function validateClaimsAction(

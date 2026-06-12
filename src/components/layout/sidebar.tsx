@@ -14,6 +14,7 @@ import {
   Database,
   Sparkles,
   Menu,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ const navItems = [
   { href: "/regulatory", label: "Regulatorio", icon: Shield },
   { href: "/documents", label: "Documentos", icon: FileText },
   { href: "/ai", label: "Asistente IA", icon: Bot },
+  { href: "/settings", label: "Configuración", icon: Settings },
 ];
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {

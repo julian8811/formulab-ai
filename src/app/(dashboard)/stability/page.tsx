@@ -1,25 +1,43 @@
 import { AppHeader } from "@/components/layout/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormulaSelector } from "@/components/formulas/formula-selector";
 import { getFormulas, getFormulaAnalysis } from "@/lib/actions";
 import { seedStabilityProtocols, seedMicroProtocols } from "@/data/seed";
 import { ValidationAlertsList } from "@/components/validation/alerts-list";
 
-export default async function StabilityPage() {
+interface PageProps {
+  searchParams: Promise<{ formula?: string }>;
+}
+
+export default async function StabilityPage({ searchParams }: PageProps) {
+  const params = await searchParams;
   const formulas = await getFormulas();
-  const firstFormula = formulas[0];
+  const formulaOptions = formulas.map((f) => ({ id: f.id, name: f.name }));
+  const selectedId =
+    params.formula && formulas.some((f) => f.id === params.formula)
+      ? params.formula
+      : formulas[0]?.id;
+
   let stabilityData = null;
   let microData = null;
 
-  if (firstFormula) {
-    const analysis = await getFormulaAnalysis(firstFormula.id);
-    stabilityData = analysis.stability;
-    microData = analysis.microbiology;
+  if (selectedId) {
+    try {
+      const analysis = await getFormulaAnalysis(selectedId);
+      stabilityData = analysis.stability;
+      microData = analysis.microbiology;
+    } catch {
+      stabilityData = null;
+      microData = null;
+    }
   }
 
   return (
     <div>
       <AppHeader title="Estabilidad y microbiología" />
       <div className="space-y-6 p-6">
+        <FormulaSelector formulas={formulaOptions} selectedId={selectedId} />
+
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>

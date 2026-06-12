@@ -65,9 +65,14 @@ type FormulaFormValues = z.infer<typeof formulaFormSchema>;
 interface FormulaBuilderProps {
   ingredients: SeedIngredient[];
   defaultValues?: Partial<FormulaFormValues>;
+  formulaId?: string;
 }
 
-export function FormulaBuilder({ ingredients, defaultValues }: FormulaBuilderProps) {
+export function FormulaBuilder({
+  ingredients,
+  defaultValues,
+  formulaId,
+}: FormulaBuilderProps) {
   const router = useRouter();
 
   const form = useForm<FormulaFormValues>({
@@ -106,8 +111,10 @@ export function FormulaBuilder({ ingredients, defaultValues }: FormulaBuilderPro
       return;
     }
     try {
-      const res = await fetch("/api/formulas", {
-        method: "POST",
+      const url = formulaId ? `/api/formulas/${formulaId}` : "/api/formulas";
+      const method = formulaId ? "PATCH" : "POST";
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...parsed.data,
@@ -115,9 +122,9 @@ export function FormulaBuilder({ ingredients, defaultValues }: FormulaBuilderPro
         }),
       });
 
-      if (!res.ok) throw new Error("Error al crear fórmula");
+      if (!res.ok) throw new Error("Error al guardar fórmula");
       const formula = await res.json();
-      toast.success("Fórmula creada");
+      toast.success(formulaId ? "Fórmula actualizada" : "Fórmula creada");
       router.push(`/formulas/${formula.id}`);
     } catch {
       toast.error("Error al guardar la fórmula");
@@ -336,7 +343,7 @@ export function FormulaBuilder({ ingredients, defaultValues }: FormulaBuilderPro
       </Card>
 
       <div className="flex gap-3">
-        <Button type="submit">Crear fórmula</Button>
+        <Button type="submit">{formulaId ? "Guardar cambios" : "Crear fórmula"}</Button>
         <Button type="button" variant="outline" onClick={() => router.back()}>
           Cancelar
         </Button>

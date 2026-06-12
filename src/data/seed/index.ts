@@ -4,6 +4,7 @@ import type { SeedClaimRule, SeedIngredient, SeedIncompatibility } from "./types
 import { extendedIngredients } from "./ingredients-extended";
 import { extendedIncompatibilities } from "./ingredients-extended";
 import { batch2Ingredients } from "./ingredients-batch2";
+import { batch3Ingredients } from "./ingredients-batch3";
 
 function dedupeIngredients(items: SeedIngredient[]): SeedIngredient[] {
   const seen = new Set<string>();
@@ -806,6 +807,7 @@ const baseIngredients: SeedIngredient[] = [
   },
   ...extendedIngredients,
   ...batch2Ingredients,
+  ...batch3Ingredients,
 ];
 
 export const seedIngredients = dedupeIngredients(baseIngredients);
@@ -1096,6 +1098,62 @@ export const seedRegulatoryProfiles = [
     productCategories: {
       human: "Cosmetic product",
       dog: "Pet care product (outside CPR scope)",
+    },
+  },
+  {
+    market: "mexico" as const,
+    name: "México — COFEPRIS / NOM-141-SSA1",
+    description:
+      "Cosméticos humanos regulados por COFEPRIS bajo NOM-141. Productos para mascotas no son cosméticos humanos; aplican requisitos sanitarios de productos de aseo animal.",
+    labelingRequirements: [
+      "Denominación distintiva y genérica",
+      "Lista de ingredientes descendente (INCI)",
+      "Contenido neto",
+      "Nombre y domicilio del responsable",
+      "País de origen",
+      "Modo de empleo",
+      "Precauciones y advertencias",
+      "Lote y fecha de caducidad",
+    ],
+    warnings: [
+      "Solo uso externo",
+      "Evitar contacto con ojos",
+      "En perros: evitar lamido prolongado",
+      "Mantener fuera del alcance de niños y mascotas",
+    ],
+    allowedClaims: ["Limpia", "Suaviza", "Refresca", "Desodoriza", "Cuidado del pelaje"],
+    restrictedClaims: ["Cura", "Trata", "Antibacterial", "Antifúngico", "Antipulgas"],
+    productCategories: {
+      human: "Producto cosmético",
+      dog: "Producto de grooming / aseo animal",
+    },
+  },
+  {
+    market: "brazil" as const,
+    name: "Brasil — ANVISA RDC 07/2015",
+    description:
+      "Cosméticos humanos regulados por ANVISA (RDC 07/2015 e Instrução Normativa 03/2022). Productos para mascotas regulados separadamente como produtos de higiene animal.",
+    labelingRequirements: [
+      "Nome do produto",
+      "Lista de ingredientes (INCI) descendente",
+      "Conteúdo líquido",
+      "Nome do responsável e CNPJ",
+      "País de origem",
+      "Modo de uso",
+      "Advertências e precauções",
+      "Lote e prazo de validade",
+    ],
+    warnings: [
+      "Uso externo",
+      "Evitar contato com os olhos",
+      "Em cães: evitar lambedura prolongada",
+      "Manter fora do alcance de crianças e animais",
+    ],
+    allowedClaims: ["Limpa", "Suaviza", "Refresca", "Desodoriza", "Cuidado do pelo"],
+    restrictedClaims: ["Cura", "Trata", "Antibacteriano", "Antifúngico", "Antipulgas"],
+    productCategories: {
+      human: "Produto cosmético",
+      dog: "Produto de higiene animal (fora do escopo cosmético humano)",
     },
   },
 ];

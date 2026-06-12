@@ -52,8 +52,10 @@ export function ReformulationPanel({ formulaId }: { formulaId: string }) {
           costRes.json(),
         ]);
         if (!cancelled) {
-          setNatural(naturalData);
-          setCost(costData);
+          setNatural(
+            Array.isArray(naturalData) ? naturalData : (naturalData.suggestions ?? []),
+          );
+          setCost(Array.isArray(costData) ? costData : (costData.suggestions ?? []));
         }
       } finally {
         if (!cancelled) setLoading(false);

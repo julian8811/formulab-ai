@@ -1,6 +1,6 @@
 import { isDatabaseConfigured, getDb } from "@/db";
 import { formulas, formulaVersions, formulaIngredients } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import type {
   ProductType,
   TargetAudience,
@@ -117,6 +117,85 @@ export async function dbGetFormulas(): Promise<StoredFormula[]> {
 
 export async function dbGetFormulaById(id: string): Promise<StoredFormula | undefined> {
   return loadFormulaWithLines(id);
+}
+
+export interface FormulaVersionSummary {
+  id: string;
+  versionNumber: number;
+  notes: string | null;
+  createdAt: string;
+}
+
+export async function dbListFormulaVersions(
+  formulaId: string,
+): Promise<FormulaVersionSummary[]> {
+  const db = getDb();
+  const versions = await db
+    .select()
+    .from(formulaVersions)
+    .where(eq(formulaVersions.formulaId, formulaId))
+    .orderBy(desc(formulaVersions.versionNumber));
+
+  return versions.map((v) => ({
+    id: v.id,
+    versionNumber: v.versionNumber,
+    notes: v.notes,
+    createdAt: v.createdAt.toISOString(),
+  }));
+}
+
+export async function dbGetFormulaByVersion(
+  formulaId: string,
+  versionNumber: number,
+): Promise<StoredFormula | undefined> {
+  const db = getDb();
+  const [formula] = await db
+    .select()
+    .from(formulas)
+    .where(eq(formulas.id, formulaId))
+    .limit(1);
+
+  if (!formula) return undefined;
+
+  const [version] = await db
+    .select()
+    .from(formulaVersions)
+    .where(
+      and(
+        eq(formulaVersions.formulaId, formulaId),
+        eq(formulaVersions.versionNumber, versionNumber),
+      ),
+    )
+    .limit(1);
+
+  if (!version) return undefined;
+
+  const lines = await db
+    .select()
+    .from(formulaIngredients)
+    .where(eq(formulaIngredients.formulaVersionId, version.id))
+    .orderBy(formulaIngredients.sortOrder);
+
+  return rowToFormula(formula, version, lines);
+}
+
+export async function dbGetFormulaVersionId(
+  formulaId: string,
+  versionNumber: number,
+): Promise<string | undefined> {
+  const db = getDb();
+  const [version] = await db
+    .select({ id: formulaVersions.id })
+    .from(formulaVersions)
+    .where(
+      and(
+        eq(formulaVersions.formulaId, formulaId),
+        eq(formulaVersions.versionNumber, versionNumber),
+      ),
+    )
+    .limit(1);
+
+  return version?.id;
 }
 
 export async function dbCreateFormula(input: CreateFormulaInput): Promise<StoredFormula> {

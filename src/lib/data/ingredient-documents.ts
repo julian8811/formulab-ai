@@ -2,6 +2,7 @@ import { isDatabaseConfigured, getDb } from "@/db";
 import { ingredientDocuments } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import type { DocumentType } from "@/types";
+import { isDemoMode, isProduction } from "@/lib/auth/guard";
 
 export interface IngredientDocument {
   id: string;
@@ -14,10 +15,15 @@ export interface IngredientDocument {
 
 const memoryDocs: IngredientDocument[] = [];
 
+function shouldUseInMemoryStore(): boolean {
+  return isDemoMode();
+}
+
 export async function getIngredientDocuments(
   ingredientId: string,
 ): Promise<IngredientDocument[]> {
   if (!isDatabaseConfigured()) {
+    if (!shouldUseInMemoryStore()) return [];
     return memoryDocs.filter((d) => d.ingredientId === ingredientId);
   }
 
@@ -37,6 +43,7 @@ export async function getIngredientDocuments(
       uploadedAt: r.uploadedAt.toISOString(),
     }));
   } catch {
+    if (!shouldUseInMemoryStore()) return [];
     return memoryDocs.filter((d) => d.ingredientId === ingredientId);
   }
 }
@@ -45,6 +52,12 @@ export async function saveIngredientDocument(
   data: Omit<IngredientDocument, "id" | "uploadedAt">,
 ): Promise<IngredientDocument> {
   if (!isDatabaseConfigured()) {
+    if (isProduction() && !shouldUseInMemoryStore()) {
+      throw new Error("Base de datos no disponible en producción");
+    }
+    if (!shouldUseInMemoryStore()) {
+      throw new Error("Base de datos no configurada");
+    }
     const doc: IngredientDocument = {
       ...data,
       id: `doc-${Date.now()}`,
@@ -77,6 +90,7 @@ export async function saveIngredientDocument(
 
 export async function deleteIngredientDocument(id: string): Promise<void> {
   if (!isDatabaseConfigured()) {
+    if (!shouldUseInMemoryStore()) return;
     const idx = memoryDocs.findIndex((d) => d.id === id);
     if (idx >= 0) memoryDocs.splice(idx, 1);
     return;

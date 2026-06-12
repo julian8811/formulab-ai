@@ -86,13 +86,47 @@ export function getChatModel() {
   return getChatModelFor(getAiAuthMethod());
 }
 
+const PSEUDO_EMBEDDING_DIMS = 1536;
+
+/** Hash-based pseudo-embedding for dev semantic search when Gemini is unavailable. */
+export function generatePseudoEmbedding(text: string): number[] {
+  const normalized = text.toLowerCase().trim();
+  const embedding = new Float64Array(PSEUDO_EMBEDDING_DIMS);
+
+  for (let i = 0; i < normalized.length; i++) {
+    const char = normalized.charCodeAt(i);
+    const idx = (char * 31 + i * 17) % PSEUDO_EMBEDDING_DIMS;
+    embedding[idx] += 1;
+  }
+
+  for (const word of normalized.split(/\s+/).filter(Boolean)) {
+    let hash = 5381;
+    for (let j = 0; j < word.length; j++) {
+      hash = (hash * 33 + word.charCodeAt(j)) % PSEUDO_EMBEDDING_DIMS;
+    }
+    embedding[hash] += 2;
+    embedding[(hash * 7 + 13) % PSEUDO_EMBEDDING_DIMS] += 0.5;
+  }
+
+  let magnitude = 0;
+  for (let i = 0; i < PSEUDO_EMBEDDING_DIMS; i++) {
+    magnitude += embedding[i] * embedding[i];
+  }
+  magnitude = Math.sqrt(magnitude) || 1;
+
+  return Array.from(embedding, (v) => v / magnitude);
+}
+
 export function getEmbeddingModel() {
-  const method = getAiAuthMethod();
-  if (method === "gemini") {
+  if (getGeminiKey()) {
     const google = createGoogleGenerativeAI({ apiKey: getGeminiKey() });
     return google.textEmbeddingModel("text-embedding-004");
   }
   return undefined;
+}
+
+export function hasRealEmbeddingModel(): boolean {
+  return Boolean(getGeminiKey());
 }
 
 function isFailoverError(error: unknown): boolean {

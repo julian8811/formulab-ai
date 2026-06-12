@@ -16,7 +16,10 @@ Copiloto técnico de formulación cosmética para **perros y humanos**. Lleva un
 ## Características
 
 - **Constructor de fórmula** — tipo de producto, público (perro/humano), formato, posicionamiento y composición por fases
-- **Base de ingredientes** — 30+ materias primas con INCI, rangos de uso, compatibilidad canina y costos
+- **Base de ingredientes** — 310+ materias primas con INCI, rangos de uso, compatibilidad canina y costos
+- **Búsqueda semántica** — encuentra ingredientes por significado en `/ingredients`
+- **7 plantillas** — fórmulas base canino + humano listas para usar
+- **Organizaciones** — espacio de trabajo por usuario con rol owner al registrarse
 - **Validador técnico** — semáforos para pH, porcentajes, incompatibilidades iónicas y microbiología
 - **Validador de claims** — detecta frases riesgosas (medicamento veterinario, pesticida, etc.)
 - **Módulo regulatorio** — perfiles Colombia/CAN, FDA, UE
@@ -81,6 +84,10 @@ Abre [http://localhost:3000](http://localhost:3000).
 
 Si `DATABASE_URL` no está configurada, la app usa datos sembrados en memoria. Todos los módulos de validación, claims, scoring y documentos funcionan igual.
 
+### Producción
+
+En `NODE_ENV=production` se requiere autenticación Supabase para acceder al dashboard. Las fórmulas y documentos se persisten solo en Postgres (sin fallback en memoria).
+
 ## Variables de entorno
 
 | Variable                        | Descripción                         | Requerida   |
@@ -124,6 +131,15 @@ Políticas RLS: [`supabase/migrations/001_rls_policies.sql`](supabase/migrations
 | `npm run db:seed`    | Sembrar datos en Supabase     |
 | `npm run db:migrate` | Aplicar migración SQL vía API |
 | `npm run format`     | Prettier                      |
+
+## Spec 001 — Fases completadas
+
+| Fase               | Alcance                                                   |
+| ------------------ | --------------------------------------------------------- |
+| 1 — Seguridad      | Auth guard, middleware, RLS, demo mode                    |
+| 2 — Datos          | Versiones, edición, scores, selector de fórmula           |
+| 3 — IA/Regulatorio | Búsqueda semántica, reformulación IA, import CosIng       |
+| 4 — Producto       | Organizaciones, tests, README, catálogo 310+ ingredientes |
 
 ## Módulos de la plataforma
 
