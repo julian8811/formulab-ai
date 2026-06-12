@@ -20,7 +20,7 @@ type GenerateAiTextOptions = {
   maxOutputTokens?: number;
 };
 
-const GITHUB_MODELS_BASE = "https://models.github.ai/inference";
+const GITHUB_MODELS_BASE = "https://models.github.ai/inference/v1";
 const GITHUB_MODEL = "openai/gpt-4.1-mini";
 
 /** Proveedores 100% gratis — sin tarjeta de crédito. */
@@ -67,7 +67,7 @@ function getChatModelFor(method: AiAuthMethod) {
           "X-GitHub-Api-Version": "2022-11-28",
         },
       });
-      return github(GITHUB_MODEL);
+      return github.chat(GITHUB_MODEL);
     }
     case "gemini": {
       const google = createGoogleGenerativeAI({ apiKey: getGeminiKey() });
