@@ -5,7 +5,16 @@ import { extendedIngredients } from "./ingredients-extended";
 import { extendedIncompatibilities } from "./ingredients-extended";
 import { batch2Ingredients } from "./ingredients-batch2";
 
-export const seedIngredients: SeedIngredient[] = [
+function dedupeIngredients(items: SeedIngredient[]): SeedIngredient[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
+
+const baseIngredients: SeedIngredient[] = [
   {
     id: "ing-water",
     commercialName: "Agua purificada USP",
@@ -798,6 +807,8 @@ export const seedIngredients: SeedIngredient[] = [
   ...extendedIngredients,
   ...batch2Ingredients,
 ];
+
+export const seedIngredients = dedupeIngredients(baseIngredients);
 
 export const seedIncompatibilities: SeedIncompatibility[] = [
   {
