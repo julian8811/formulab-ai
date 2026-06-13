@@ -135,6 +135,12 @@
   .font-display {
     font-family: var(--font-display), var(--font-geist-sans), system-ui, sans-serif;
   }
+  img,
+  svg,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
 }
 
 @layer utilities {
@@ -186,5 +192,41 @@
     background:
       radial-gradient(ellipse 80% 50% at 50% -20%, rgba(13, 77, 77, 0.12), transparent),
       linear-gradient(to bottom, var(--background), #eceef0);
+  }
+
+  .page-content {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .table-scroll {
+    @apply relative max-w-full overflow-x-auto;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--primary) 35%, transparent) transparent;
+  }
+
+  .table-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .table-scroll::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--primary) 35%, transparent);
+    border-radius: 9999px;
+  }
+
+  .card-table {
+    @apply overflow-visible;
+  }
+
+  .card-table [data-slot="card-content"] {
+    @apply min-w-0 overflow-visible px-4 pb-4 pt-0 sm:px-6;
+  }
+
+  .card-table [data-slot="card-header"] {
+    @apply border-b px-4 pb-4 sm:px-6;
+  }
+
+  .card-table .table-scroll {
+    @apply -mx-4 w-[calc(100%+2rem)] px-4 sm:-mx-6 sm:w-[calc(100%+3rem)] sm:px-6;
   }
 }

@@ -1,4 +1,4 @@
-import { AppHeader } from "@/components/layout/sidebar";
+import { PageShell } from "@/components/layout/page-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/link-button";
 import { getAllIngredients } from "@/lib/actions";
@@ -15,33 +15,30 @@ export default async function IngredientsPage() {
   const canEdit = ctx ? canManageCatalog(ctx.role) : true;
 
   return (
-    <div>
-      <AppHeader title="Base de ingredientes" />
-      <div className="space-y-6 p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col gap-2">
-            <p className="text-muted-foreground">
-              {ingredients.length} materias primas catalogadas
-            </p>
-            <EmbeddingStatusBadge />
-          </div>
-          {canEdit && (
-            <LinkButton href="/ingredients/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Nuevo ingrediente
-            </LinkButton>
-          )}
+    <PageShell title="Base de ingredientes">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 flex-col gap-2">
+          <p className="text-muted-foreground">
+            {ingredients.length} materias primas catalogadas
+          </p>
+          <EmbeddingStatusBadge />
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Ingredientes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <IngredientsTable ingredients={ingredients} />
-          </CardContent>
-        </Card>
+        {canEdit && (
+          <LinkButton href="/ingredients/new" className="shrink-0">
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo ingrediente
+          </LinkButton>
+        )}
       </div>
-    </div>
+
+      <Card className="card-table min-w-0">
+        <CardHeader>
+          <CardTitle>Ingredientes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <IngredientsTable ingredients={ingredients} />
+        </CardContent>
+      </Card>
+    </PageShell>
   );
 }

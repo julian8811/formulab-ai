@@ -35,8 +35,8 @@ export default function HomePage() {
   return (
     <div className="min-h-screen hero-gradient">
       <header className="glass-panel sticky top-0 z-50 border-b">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <BrandLogo href="/" size="sm" />
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+          <BrandLogo href="/" size="sm" className="min-w-0 shrink" />
           <div className="flex gap-2">
             <LinkButton href="/login" variant="ghost">
               Entrar

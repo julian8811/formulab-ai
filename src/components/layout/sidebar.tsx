@@ -66,8 +66,8 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AppSidebar() {
   return (
-    <aside className="glass-sidebar hidden w-64 flex-col border-r lg:flex">
-      <div className="flex h-16 items-center border-b border-sidebar-border px-5">
+    <aside className="glass-sidebar sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r lg:flex">
+      <div className="flex min-h-[4.25rem] items-center border-b border-sidebar-border px-4 py-3">
         <BrandLogo showTagline href="/dashboard" size="sm" />
       </div>
       <div className="flex-1 overflow-y-auto p-4">
@@ -92,7 +92,7 @@ export function MobileNav() {
         <Menu className="h-5 w-5" />
       </SheetTrigger>
       <SheetContent side="left" className="glass-sidebar w-64 p-0">
-        <div className="flex h-16 items-center border-b px-5">
+        <div className="flex min-h-[4.25rem] items-center border-b px-4 py-3">
           <BrandLogo showTagline href="/dashboard" size="sm" />
         </div>
         <div className="p-4">
@@ -105,10 +105,10 @@ export function MobileNav() {
 
 export function AppHeader({ title }: { title: string }) {
   return (
-    <header className="glass-panel flex h-16 items-center gap-4 border-b px-4 lg:px-6">
+    <header className="glass-panel sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b px-4 lg:px-6">
       <MobileNav />
       <Separator orientation="vertical" className="h-6 lg:hidden" />
-      <h1 className="flex-1 font-display text-lg font-semibold tracking-tight text-foreground">
+      <h1 className="min-w-0 flex-1 truncate font-display text-lg font-semibold tracking-tight text-foreground">
         {title}
       </h1>
       <UserMenu />

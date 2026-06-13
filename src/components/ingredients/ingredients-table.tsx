@@ -57,7 +57,7 @@ export function IngredientsTable({ ingredients }: IngredientsTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+      <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
         <SemanticSearchBar onQueryChange={setQuery} onSemanticResults={setSemanticIds} />
         <Select value={functionFilter} onValueChange={(v) => v && setFunctionFilter(v)}>
           <SelectTrigger className="w-full sm:w-[200px]">
@@ -107,32 +107,35 @@ export function IngredientsTable({ ingredients }: IngredientsTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>INCI</TableHead>
-            <TableHead>Nombre común</TableHead>
-            <TableHead>Función</TableHead>
-            <TableHead>Rango %</TableHead>
-            <TableHead>Perros</TableHead>
-            <TableHead>Origen</TableHead>
-            <TableHead>Costo/kg</TableHead>
+            <TableHead className="min-w-[220px]">INCI</TableHead>
+            <TableHead className="min-w-[140px]">Nombre común</TableHead>
+            <TableHead className="min-w-[180px]">Función</TableHead>
+            <TableHead className="whitespace-nowrap">Rango %</TableHead>
+            <TableHead className="whitespace-nowrap">Perros</TableHead>
+            <TableHead className="whitespace-nowrap">Origen</TableHead>
+            <TableHead className="whitespace-nowrap text-right">Costo/kg</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filtered.map((ing) => (
             <TableRow key={ing.id} className="cursor-pointer hover:bg-muted/50">
-              <TableCell className="font-mono text-xs">
+              <TableCell className="font-mono text-xs leading-relaxed whitespace-normal break-words">
                 <Link href={`/ingredients/${ing.id}`} className="hover:underline">
                   {ing.inciName}
                 </Link>
               </TableCell>
-              <TableCell>
+              <TableCell className="whitespace-normal">
                 <Link href={`/ingredients/${ing.id}`} className="hover:underline">
                   {ing.commonName}
                 </Link>
               </TableCell>
-              <TableCell className="text-sm max-w-[200px] truncate">
+              <TableCell
+                className="max-w-[240px] text-sm whitespace-normal text-muted-foreground"
+                title={ing.function}
+              >
                 {ing.function}
               </TableCell>
-              <TableCell>
+              <TableCell className="whitespace-nowrap tabular-nums">
                 {ing.minPercentage}-{ing.maxPercentage}%
               </TableCell>
               <TableCell>
@@ -148,8 +151,10 @@ export function IngredientsTable({ ingredients }: IngredientsTableProps) {
                   {ing.dogCompatibility}
                 </Badge>
               </TableCell>
-              <TableCell>{ing.origin}</TableCell>
-              <TableCell>${ing.costPerKg}</TableCell>
+              <TableCell className="capitalize whitespace-nowrap">{ing.origin}</TableCell>
+              <TableCell className="whitespace-nowrap text-right tabular-nums">
+                ${ing.costPerKg}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

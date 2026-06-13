@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface BrandLogoProps {
@@ -9,9 +10,9 @@ interface BrandLogoProps {
 }
 
 const sizes = {
-  sm: { icon: 28, text: "text-base" },
-  md: { icon: 36, text: "text-lg" },
-  lg: { icon: 44, text: "text-xl" },
+  sm: { box: "size-9", text: "text-base", tagline: "text-[10px]" },
+  md: { box: "size-11", text: "text-lg", tagline: "text-[10px]" },
+  lg: { box: "size-14", text: "text-xl", tagline: "text-xs" },
 };
 
 export function BrandLogo({
@@ -22,25 +23,38 @@ export function BrandLogo({
 }: BrandLogoProps) {
   const s = sizes[size];
   const content = (
-    <div className={cn("flex items-center gap-3", className)}>
-      <div className="relative flex shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/5 p-1.5">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/favicon.svg"
-          alt=""
-          width={s.icon}
-          height={s.icon}
-          className="h-auto w-auto"
+    <div className={cn("flex min-w-0 items-center gap-3", className)}>
+      <div
+        className={cn(
+          "relative flex shrink-0 items-center justify-center overflow-visible rounded-xl bg-primary/5 ring-1 ring-primary/15",
+          s.box,
+        )}
+      >
+        <Image
+          src="/brand/logo.png"
+          alt="FormuLab AI"
+          width={512}
+          height={512}
+          className="size-[82%] object-contain"
+          priority={size === "lg"}
         />
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 leading-tight">
         <p
-          className={cn("font-display font-semibold tracking-tight text-primary", s.text)}
+          className={cn(
+            "truncate font-display font-semibold tracking-tight text-primary",
+            s.text,
+          )}
         >
           FormuLab AI
         </p>
         {showTagline && (
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <p
+            className={cn(
+              "truncate font-semibold uppercase tracking-widest text-muted-foreground",
+              s.tagline,
+            )}
+          >
             Precisión clínica
           </p>
         )}
@@ -50,7 +64,7 @@ export function BrandLogo({
 
   if (href) {
     return (
-      <Link href={href} className="transition-opacity hover:opacity-90">
+      <Link href={href} className="block min-w-0 transition-opacity hover:opacity-90">
         {content}
       </Link>
     );
