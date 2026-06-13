@@ -37,8 +37,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# stitch cache (local MCP pulls)
+.stitch-*
+/.stitch-*
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-.vercel

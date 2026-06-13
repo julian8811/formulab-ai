@@ -1,0 +1,16 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer complex ring (simplified from logo) -->
+  <circle cx="32" cy="32" r="30" stroke="#0d4d4d" stroke-width="2" stroke-dasharray="2 2" opacity="0.4"/>
+  
+  <!-- Interlocking orbital paths -->
+  <ellipse cx="32" cy="32" rx="28" ry="12" stroke="#0d4d4d" stroke-width="1.5" transform="rotate(45 32 32)"/>
+  <ellipse cx="32" cy="32" rx="28" ry="12" stroke="#0d4d4d" stroke-width="1.5" transform="rotate(-45 32 32)"/>
+  
+  <!-- Central Droplet with Botanical Core -->
+  <path d="M32 16C32 16 42 30 42 38C42 43.5228 37.5228 48 32 48C26.4772 48 22 43.5228 22 38C22 30 32 16 32 16Z" fill="#0d4d4d"/>
+  <path d="M32 42V34M32 38L36 35M32 39L28 36" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Strategic Nodes -->
+  <circle cx="51.5" cy="12.5" r="2.5" fill="#0d4d4d"/>
+  <circle cx="12.5" cy="51.5" r="2.5" fill="#0d4d4d"/>
+</svg>

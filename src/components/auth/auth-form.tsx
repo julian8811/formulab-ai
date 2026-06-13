@@ -54,7 +54,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="glass-card w-full max-w-md border-primary/10 shadow-none ring-0">
       <CardHeader>
         <CardTitle>{mode === "login" ? "Iniciar sesión" : "Crear cuenta"}</CardTitle>
         <CardDescription>

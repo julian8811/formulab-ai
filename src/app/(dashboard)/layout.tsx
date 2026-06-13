@@ -11,7 +11,9 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen">
       <AppSidebar />
-      <main className="flex-1 overflow-auto">{children}</main>
+      <main className="flex-1 overflow-auto bg-[linear-gradient(180deg,var(--background)_0%,#eceef0_100%)]">
+        {children}
+      </main>
     </div>
   );
 }
