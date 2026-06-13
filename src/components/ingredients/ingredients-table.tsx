@@ -100,7 +100,7 @@ export function IngredientsTable({ ingredients }: IngredientsTableProps) {
         </Select>
       </div>
 
-      <p className="text-sm text-muted-foreground">
+      <p className="text-base text-muted-foreground">
         {filtered.length} de {ingredients.length} ingredientes
       </p>
 
@@ -119,7 +119,7 @@ export function IngredientsTable({ ingredients }: IngredientsTableProps) {
         <TableBody>
           {filtered.map((ing) => (
             <TableRow key={ing.id} className="cursor-pointer hover:bg-muted/50">
-              <TableCell className="font-mono text-xs leading-relaxed whitespace-normal break-words">
+              <TableCell className="font-mono text-sm leading-relaxed whitespace-normal break-words">
                 <Link href={`/ingredients/${ing.id}`} className="hover:underline">
                   {ing.inciName}
                 </Link>

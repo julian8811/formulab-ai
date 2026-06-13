@@ -91,7 +91,9 @@ export default function AIPage() {
               <CardTitle className="text-base">Respuesta</CardTitle>
             </CardHeader>
             <CardContent>
-              <pre className="whitespace-pre-wrap text-sm font-sans">{response}</pre>
+              <pre className="whitespace-pre-wrap text-base font-sans leading-relaxed">
+                {response}
+              </pre>
             </CardContent>
           </Card>
         )}

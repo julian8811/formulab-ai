@@ -9,7 +9,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
     <div data-slot="table-container" className="table-scroll relative max-w-full">
       <table
         data-slot="table"
-        className={cn("w-full min-w-[720px] caption-bottom text-sm", className)}
+        className={cn("w-full min-w-[720px] caption-bottom text-base", className)}
         {...props}
       />
     </div>
@@ -64,7 +64,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-10 px-3 text-left align-middle text-xs font-semibold uppercase tracking-wide text-muted-foreground [&:has([role=checkbox])]:pr-0",
+        "h-11 px-3 text-left align-middle text-sm font-semibold uppercase tracking-wide text-muted-foreground [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}
@@ -76,7 +76,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   return (
     <td
       data-slot="table-cell"
-      className={cn("px-3 py-2.5 align-middle [&:has([role=checkbox])]:pr-0", className)}
+      className={cn("px-3 py-3 align-middle [&:has([role=checkbox])]:pr-0", className)}
       {...props}
     />
   );

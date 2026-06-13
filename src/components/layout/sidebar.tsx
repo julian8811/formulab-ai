@@ -49,7 +49,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             href={href}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200",
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-[0.9375rem] transition-all duration-200",
               active
                 ? "nav-active font-medium"
                 : "text-muted-foreground hover:bg-primary/5 hover:text-primary",
@@ -74,7 +74,7 @@ export function AppSidebar() {
         <NavLinks />
       </div>
       <div className="border-t border-sidebar-border p-4">
-        <p className="text-[11px] leading-relaxed text-muted-foreground">
+        <p className="text-[11px] leading-relaxed text-muted-foreground sm:text-xs">
           No sustituye evaluación profesional de químico/regulador.
         </p>
       </div>
@@ -108,7 +108,7 @@ export function AppHeader({ title }: { title: string }) {
     <header className="glass-panel sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b px-4 lg:px-6">
       <MobileNav />
       <Separator orientation="vertical" className="h-6 lg:hidden" />
-      <h1 className="min-w-0 flex-1 truncate font-display text-lg font-semibold tracking-tight text-foreground">
+      <h1 className="min-w-0 flex-1 truncate font-display text-xl font-semibold tracking-tight text-foreground">
         {title}
       </h1>
       <UserMenu />

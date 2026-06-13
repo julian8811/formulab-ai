@@ -61,7 +61,7 @@ export function UserMenu() {
         render={<Button variant="ghost" size="sm" className="gap-2" />}
       >
         <User className="h-4 w-4" />
-        <span className="hidden max-w-[180px] truncate text-xs sm:inline">{email}</span>
+        <span className="hidden max-w-[180px] truncate text-sm sm:inline">{email}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={handleLogout}>
